@@ -1,0 +1,8 @@
+FAILOVER SIGNING AUDIT
+This toy appliance uses s = (h + x*r) / k mod q. All r values are supplied; no curve operations are needed.
+q=10007
+Node A before reboot: h=812 r=409 s=734
+Node B healthy: h=618 r=301 s=6484
+Node A after reboot: h=1901 r=409 s=4606
+Verification record: h=229 r=812 s=6679
+Recover x, then recover k for the verification record.

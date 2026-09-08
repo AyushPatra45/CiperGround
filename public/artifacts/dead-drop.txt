@@ -1,0 +1,8 @@
+REGISTER MACHINE / 8-bit unsigned registers
+state = 0x37
+for each input byte b:
+    y = ROL8(b XOR state, 3)
+    state = (state + y + 17) & 255
+    emit y
+compare output against: 2bb1cb82ef4ca94c
+ROL8 rotates bits within eight bits. Input is 8 ASCII bytes.

@@ -1,0 +1,14 @@
+RECOVERY EXPORT
+commits:
+a11 parent=null config={mode:locked,debug:false}
+b22 parent=a11 config_patch={mode:observe}
+c33 parent=b22 config_patch={debug:true}
+d44 parent=b22 config_patch={mode:enforce}
+e55 parent=c33 config_patch={mode:disabled}
+Events:
+10:00 deploy e55 (failed health check)
+10:03 rollback to signed manifest sha256=91aa
+10:04 worker confirms manifest 91aa active
+10:05 branch main moves to d44 (no deploy)
+Signed manifest 91aa: revision=b22, environment_override={debug:false}
+Effective mode follows config inheritance, then environment override.

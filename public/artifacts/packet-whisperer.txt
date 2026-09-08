@@ -1,0 +1,11 @@
+NORTHSTAR / PACKET EXPORT
+DNS data labels use base64; sequence numbers start at zero. Packet order is capture order.
+AUDIT: export job 417 used source=10.4.0.8 session=cedar; payload length=79 bytes.
+2026-06-17T03:11:15Z DNS 10.4.0.8 -> 10.4.0.53 session=cedar seq=5 data=eS03Lg==
+2026-06-17T03:11:10Z DNS 10.4.0.8 -> 10.4.0.53 session=cedar seq=0 data=Tm9ydGhzdGFyIGV4cG9y
+2026-06-17T03:11:11Z DNS 10.4.0.8 -> 10.4.0.53 session=cedar seq=1 data=dCA0MTc6IG1haW50ZW5h
+2026-06-17T03:11:14Z DNS 10.4.0.8 -> 10.4.0.53 session=cedar seq=4 data=IEFwcHJvdmVyOiByZWxh
+2026-06-17T03:11:11Z DNS 10.4.0.8 -> 10.4.0.53 session=cedar seq=1 data=dCA0MTc6IG1haW50ZW5h
+2026-06-17T03:11:12Z DNS 10.4.0.9 -> 10.4.0.53 session=birch seq=0 data=ZGVjb3ktdHJhZmZpYw==
+2026-06-17T03:11:12Z DNS 10.4.0.8 -> 10.4.0.53 session=cedar seq=2 data=bmNlIHdpbmRvdyBtb3Zl
+2026-06-17T03:11:13Z DNS 10.4.0.8 -> 10.4.0.53 session=cedar seq=3 data=ZCB0byAwMzo0MCBVVEMu

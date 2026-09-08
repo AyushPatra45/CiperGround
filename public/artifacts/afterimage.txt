@@ -1,0 +1,10 @@
+INCIDENT / CLOCK CALIBRATION
+Gateway clock: UTC+00:00. Host clock: UTC+00:02:00. Store clock: UTC-00:00:30.
+GATEWAY 14:05:01 request=req-71 worker=812 action=health
+GATEWAY 14:05:03 request=req-72 worker=913 action=export
+HOST 14:07:04 parent=913 child=927 exec=archive-fetch
+HOST 14:07:05 parent=812 child=928 exec=probe
+STORE 14:04:35 pid=928 object=public/status result=200
+STORE 14:04:36 pid=927 object=restricted/ledger result=200
+STORE 14:04:37 pid=913 object=restricted/ledger result=403
+Use the successful protected-object read time, not its request start time.

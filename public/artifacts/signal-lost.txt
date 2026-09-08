@@ -1,0 +1,5 @@
+FIRMWARE NOTES
+Calibration packet: plaintext byte 0x41, ciphertext byte 0x1c.
+Reset state to the calibration packet’s INITIAL state before decoding the message.
+For each byte: output = ciphertext XOR state; state = (state + output + 7) mod 256.
+Message hex: 3ba52cdf49eb45f4930f894fc250ed71

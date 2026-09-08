@@ -1,0 +1,13 @@
+# Build the allowlisted lab image. The separate runner creates bounded per-team containers.
+services:
+  lab-image:
+    build: ./challenges/web
+    image: cipherground-lab:local
+    profiles: [build]
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 64m
+    pids_limit: 32
+    user: '65534:65534'

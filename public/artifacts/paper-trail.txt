@@ -1,0 +1,8 @@
+FICTIONAL RECORDS / ALL TIMES LOCAL UNLESS MARKED
+Acquisition register: 2025-11-04, asset VAULT-9 acquired by entity 4418.
+Corporate history: 4418 / Elm Relay Ltd / before 2025-12-01: 6 Foundry Lane; after: 40 Market St.
+Corporate history: 4419 / Elm Rail Ltd / 6 Market Lane.
+Collection instruction dated 2025-11-05: use the tram terminus serving our registered office; collect on the first departure after 09:20.
+Transit zone UTC+02:00. 6 Foundry Lane served only by FDR. 40 Market St served by MKT.
+FDR departures: 09:10,09:25,09:40. MKT: 09:23,09:38.
+Normalize departure to UTC; station codes are uppercase.

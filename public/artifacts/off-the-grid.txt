@@ -1,0 +1,7 @@
+FICTIONAL SURVEY ARCHIVE
+Witness: the relay was east of the river, above 80m elevation, with a passenger departure within 10 minutes after the tower clock read 17:50.
+Weather bulletin: western crossing closed 17:00–19:00; no traffic allowed.
+Sites: ALP west elevation=120m; BRK east elevation=65m; CRN east elevation=110m; DUN east elevation=95m.
+Departures in civil local time: ALP 18:00; BRK 17:58; CRN 17:56; DUN 18:09.
+Maintenance log: tower clock was 4 minutes slow. Local zone UTC+03:00.
+A departure must be strictly after the corrected observation and no later than 10 minutes afterward.

@@ -1,0 +1,5 @@
+DEVICE INVENTORY / TEXTBOOK RSA
+Device 1: n=1000036000099, e=65537, ciphertext=904370839865
+Device 2: n=1000040000111, e=65537
+Device 3: n=1000120003159, e=65537
+Plaintext is a big-endian ASCII integer, without padding.

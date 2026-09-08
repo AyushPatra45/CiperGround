@@ -1,0 +1,12 @@
+RECOVERY SCHEDULER
+Two identical workers. All tasks released at minute zero subject to predecessors.
+Task  Duration  Predecessors
+A     3         -
+B     4         -
+C     5         A
+D     2         A
+E     3         B,D
+vault 2         C,E
+F     4         C
+Objective: minimize completion of ALL tasks. Report makespan and earliest vault completion among optimal schedules.
+Tasks cannot be paused or moved between workers after starting.
