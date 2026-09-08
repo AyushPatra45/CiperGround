@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Link from 'next/link';
 import { api } from '@/lib/client';
 import { useArenaTools } from './webmcp';
 import {
@@ -35,7 +36,6 @@ import {
   SlidersHorizontal,
   Sparkles,
   ArrowRight,
-  Menu,
 } from 'lucide-react';
 import { catalog, categories, type Challenge } from '@/lib/catalog';
 import {
@@ -60,6 +60,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
+const routes: Record<string, string> = {
+  Challenges: '/',
+  Leaderboard: '/leaderboard',
+  'My team': '/team',
+  Submissions: '/submissions',
+  'Field guide': '/guide',
+  'Author studio': '/studio',
+  Account: '/account',
+};
+
 const icons: any = {
   Web: Globe,
   Forensics: Fingerprint,
@@ -70,13 +80,20 @@ const icons: any = {
 };
 function AutoClose({ children }: { children: React.ReactNode }) {
   const { setOpenMobile } = useSidebar();
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = root.current;
+    if (!element) return;
+    const close = (event: MouseEvent) => {
+      if (event.target instanceof Element && event.target.closest('button,a')) {
+        setOpenMobile(false);
+      }
+    };
+    element.addEventListener('click', close);
+    return () => element.removeEventListener('click', close);
+  }, [setOpenMobile]);
   return (
-    <div
-      style={{ display: 'contents' }}
-      onClick={(e) => {
-        if ((e.target as HTMLElement).closest('button,a')) setOpenMobile(false);
-      }}
-    >
+    <div ref={root} style={{ display: 'contents' }}>
       {children}
     </div>
   );
@@ -120,7 +137,8 @@ export default function Arena({
   const pendingChallenge = useRef(initialChallenge);
   useArenaTools(refresh);
   useEffect(() => {
-    refresh();
+    const initial = setTimeout(() => void refresh(), 0);
+    return () => clearTimeout(initial);
   }, [refresh]);
   useEffect(() => {
     if (!loading && pendingChallenge.current) {
@@ -132,15 +150,6 @@ export default function Arena({
       pendingChallenge.current = '';
     }
   }, [loading, state.challenges]);
-  const routes: any = {
-    Challenges: '/',
-    Leaderboard: '/leaderboard',
-    'My team': '/team',
-    Submissions: '/submissions',
-    'Field guide': '/guide',
-    'Author studio': '/studio',
-    Account: '/account',
-  };
   function navigate(name: string) {
     setPage(name);
     setSelected(null);
@@ -208,12 +217,12 @@ export default function Arena({
       <Sidebar className="arena-sidebar">
         <AutoClose>
           <SidebarHeader>
-            <a className="brand" href="/">
+            <Link className="brand" href="/">
               <span className="brand-mark">
                 <Terminal size={22} />
               </span>
               cipherground<span className="brand-dot">.</span>
-            </a>
+            </Link>
           </SidebarHeader>
           <SidebarContent>
             <div className="event-select">
@@ -432,7 +441,7 @@ export default function Arena({
                     </p>
                     <p className="terminal-dim">X-Request-ID: 0x7f3a</p>
                     <p className="terminal-comment">
-                      // same key. different door.
+                      {'// same key. different door.'}
                     </p>
                     <p className="green">
                       &gt; follow the request

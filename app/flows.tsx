@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Flag,
   ArrowRight,
@@ -55,10 +55,10 @@ export const ErrorMessage = ({ message }: any) =>
       {message}
     </p>
   ) : null;
-export function Picker({ value, onChange, options, label }: any) {
+export function Picker({ value, onChange, options, label, id }: any) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="form-select" aria-label={label}>
+      <SelectTrigger id={id} className="form-select" aria-label={label}>
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
@@ -357,7 +357,7 @@ export function ChallengeBody({ challenge: c, state, refresh, signIn }: any) {
             <h3>A nudge in the right direction.</h3>
             <p>
               Unlocking this hint deducts{' '}
-              {c.hintCost || Math.round(c.points * 0.1)} points from{' '}
+              {c.hintCost ?? Math.round(c.points * 0.1)} points from{' '}
               {state.team ? 'your team’s' : 'your'} total. Each hint is charged
               once, even if you reopen it.
             </p>
@@ -377,7 +377,7 @@ export function ChallengeBody({ challenge: c, state, refresh, signIn }: any) {
               >
                 {unlocked
                   ? 'Read unlocked hint'
-                  : `Unlock hint · −${c.hintCost || Math.round(c.points * 0.1)} pts`}
+                  : `Unlock hint · −${c.hintCost ?? Math.round(c.points * 0.1)} pts`}
               </button>
             )}
           </div>
@@ -401,7 +401,7 @@ export function ChallengeBody({ challenge: c, state, refresh, signIn }: any) {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              action('submit', { flag });
+              void action('submit', { flag });
             }}
             className="flag-form"
           >
@@ -422,12 +422,11 @@ export function ChallengeBody({ challenge: c, state, refresh, signIn }: any) {
           </form>
         )}
         {result && (
-          <p
+          <output
             className={result.correct ? 'success-message' : 'error-message'}
-            role="status"
           >
             {result.message}
-          </p>
+          </output>
         )}
         <ErrorMessage message={error} />
       </div>
@@ -437,7 +436,7 @@ export function ChallengeBody({ challenge: c, state, refresh, signIn }: any) {
             <AlertDialogTitle>Unlock this hint?</AlertDialogTitle>
             <AlertDialogDescription>
               This permanently deducts{' '}
-              {c.hintCost || Math.round(c.points * 0.1)} points from your{' '}
+              {c.hintCost ?? Math.round(c.points * 0.1)} points from your{' '}
               {state.team ? 'team' : 'personal'} score. Team members share the
               unlocked hint.
             </AlertDialogDescription>
@@ -447,7 +446,7 @@ export function ChallengeBody({ challenge: c, state, refresh, signIn }: any) {
             <AlertDialogAction
               onClick={() => {
                 setConfirm(false);
-                action('hint');
+                void action('hint');
               }}
             >
               Unlock hint
@@ -462,7 +461,7 @@ export function Leaderboard({ state }: any) {
   const [rows, setRows] = useState<any[]>([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true);
-  async function load() {
+  const load = useCallback(async () => {
     try {
       setRows((await api('leaderboard')).rows);
       setError('');
@@ -471,12 +470,15 @@ export function Leaderboard({ state }: any) {
     } finally {
       setLoading(false);
     }
-  }
-  useEffect(() => {
-    load();
-    const id = setInterval(load, 30000);
-    return () => clearInterval(id);
   }, []);
+  useEffect(() => {
+    const initial = setTimeout(() => void load(), 0);
+    const id = setInterval(() => void load(), 30000);
+    return () => {
+      clearTimeout(initial);
+      clearInterval(id);
+    };
+  }, [load]);
   return (
     <section>
       <div className="section-heading">
@@ -927,18 +929,20 @@ export function Studio({ state, refresh, signIn }: any) {
     [difficulty, setDifficulty] = useState('Medium'),
     [publish, setPublish] = useState('Draft');
   const allowed = ['admin', 'author'].includes(state.user?.role);
-  async function load() {
+  const role = state.user?.role;
+  const load = useCallback(async () => {
     if (!allowed) return;
     try {
       setRows((await api('admin/challenges')).rows);
-      if (state.user.role === 'admin') setAudit(await api('admin/audit'));
+      if (role === 'admin') setAudit(await api('admin/audit'));
     } catch (e: any) {
       setError(e.message);
     }
-  }
+  }, [allowed, role]);
   useEffect(() => {
-    load();
-  }, [state.user?.role]);
+    const initial = setTimeout(() => void load(), 0);
+    return () => clearTimeout(initial);
+  }, [load]);
   async function create(e: any) {
     e.preventDefault();
     setBusy(true);
@@ -1039,11 +1043,7 @@ export function Studio({ state, refresh, signIn }: any) {
         </button>
       </div>
       <ErrorMessage message={error} />
-      {success && (
-        <p className="success-message" role="status">
-          {success}
-        </p>
-      )}
+      {success && <output className="success-message">{success}</output>}
       {creating && (
         <form className="panel editor-form" onSubmit={create}>
           <h3>New challenge</h3>
@@ -1061,18 +1061,20 @@ export function Studio({ state, refresh, signIn }: any) {
                 placeholder="a-trace-in-time"
               />
             </label>
-            <label>
+            <label htmlFor="challenge-category">
               Category
               <Picker
+                id="challenge-category"
                 label="Category"
                 value={category}
                 onChange={setCategory}
                 options={categories.slice(1)}
               />
             </label>
-            <label>
+            <label htmlFor="challenge-difficulty">
               Difficulty
               <Picker
+                id="challenge-difficulty"
                 label="Difficulty"
                 value={difficulty}
                 onChange={setDifficulty}
@@ -1129,9 +1131,10 @@ export function Studio({ state, refresh, signIn }: any) {
             Tags, separated by commas
             <input name="tags" placeholder="Log analysis, Timeline" />
           </label>
-          <label>
+          <label htmlFor="challenge-visibility">
             Visibility
             <Picker
+              id="challenge-visibility"
               label="Visibility"
               value={publish}
               onChange={setPublish}

@@ -479,3 +479,45 @@ test('oversized JSON body rejected before mutation', async () => {
     h.close();
   }
 });
+
+test('free hints remain free through repeat unlocks and final scoring', async () => {
+  const h = harness();
+  try {
+    await h.register('organizer');
+    await h.call('admin/claim', { token: 'a'.repeat(64) });
+    assert.equal(
+      (
+        await h.call('admin/challenges', {
+          ...challenge,
+          hintCost: 0,
+          published: true,
+        })
+      ).status,
+      201,
+    );
+    await h.register('freehintplayer');
+    const before = (await h.call('state')).data;
+    assert.equal(
+      before.challenges.find((c) => c.id === challenge.id).hintCost,
+      0,
+    );
+    for (let i = 0; i < 2; i++) {
+      const hint = await h.call(`challenges/${challenge.id}/hint`, {});
+      assert.equal(hint.status, 200);
+      assert.equal(hint.data.cost, 0);
+      assert.equal(hint.data.hint, challenge.hint);
+      assert.equal((await h.call('state')).data.points, 0);
+    }
+    assert.equal(
+      (
+        await h.call(`challenges/${challenge.id}/submit`, {
+          flag: challenge.flag,
+        })
+      ).data.correct,
+      true,
+    );
+    assert.equal((await h.call('state')).data.points, challenge.points);
+  } finally {
+    h.close();
+  }
+});
