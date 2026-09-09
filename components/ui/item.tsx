@@ -6,8 +6,10 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 
+/* oxlint-disable jsx-a11y/prefer-tag-over-role -- Polymorphic items require ARIA list semantics. */
 function ItemGroup({ className, ...props }: React.ComponentProps<'div'>) {
   return (
+    // Items may render links or custom elements; ARIA list semantics preserve composition.
     <div
       role="list"
       data-slot="item-group"
@@ -19,6 +21,7 @@ function ItemGroup({ className, ...props }: React.ComponentProps<'div'>) {
     />
   );
 }
+/* oxlint-enable jsx-a11y/prefer-tag-over-role */
 
 function ItemSeparator({
   className,

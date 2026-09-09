@@ -1,5 +1,7 @@
+import type { UserRow, TeamRow, ChallengeRow } from './rows';
+import type { Solve, HintUnlock } from '../lib/contracts';
 import { catalog, categories } from '../lib/catalog';
-import {readJsonBody} from './request';
+import { readJsonBody } from './request';
 import secrets from './evidence-secrets.json';
 import {
   token,
@@ -12,17 +14,18 @@ import {
   ApiError,
   check,
 } from './security';
-type DB = {
-  prepare: (sql: string) => any;
-  batch: (statements: any[]) => Promise<any[]>;
-};
-type Config = {
+type DB = Pick<D1Database, 'prepare' | 'batch'>;
+export type Config = {
   FLAG_KEY?: string;
   RUNNER_URL?: string;
   RUNNER_TOKEN?: string;
   ADMIN_BOOTSTRAP_TOKEN?: string;
 };
-const json = (data: any, status = 200, headers: Record<string, string> = {}) =>
+const json = (
+  data: unknown,
+  status = 200,
+  headers: Record<string, string> = {},
+) =>
   Response.json(data, {
     status,
     headers: {
@@ -32,12 +35,16 @@ const json = (data: any, status = 200, headers: Record<string, string> = {}) =>
       ...headers,
     },
   });
+const textValue = (value: unknown) => (typeof value === 'string' ? value : '');
 export function createApi(db: DB, config: Config = {}) {
-  const stmt = (s: string, ...args: any[]) => db.prepare(s).bind(...args);
-  const first = (s: string, ...args: any[]) => stmt(s, ...args).first();
-  const all = async (s: string, ...args: any[]): Promise<any[]> =>
-    (await stmt(s, ...args).all()).results;
-  const run = (s: string, ...args: any[]) => stmt(s, ...args).run();
+  const stmt = (s: string, ...args: unknown[]) => db.prepare(s).bind(...args);
+  const first = <T = { id: string }>(s: string, ...args: unknown[]) =>
+    stmt(s, ...args).first<T>();
+  const all = async <T = Record<string, unknown>>(
+    s: string,
+    ...args: unknown[]
+  ): Promise<T[]> => (await stmt(s, ...args).all<T>()).results;
+  const run = (s: string, ...args: unknown[]) => stmt(s, ...args).run();
   async function audit(
     user: string | null,
     event: string,
@@ -55,13 +62,13 @@ export function createApi(db: DB, config: Config = {}) {
   async function rate(key: string, max: number, window = 60000) {
     const now = Date.now(),
       bucket = Math.floor(now / window);
-    const r = await first(
+    const r = await first<{ count: number }>(
       'INSERT INTO limits(key,count,expires) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count',
       sha(key) + ':' + bucket,
       now + window,
     );
     check(
-      r.count <= max,
+      r && r.count <= max,
       429,
       'Too many attempts. Please try again in a minute.',
     );
@@ -85,14 +92,14 @@ export function createApi(db: DB, config: Config = {}) {
           c.environment || null,
           c.prerequisite || null,
           c.featured ? 1 : 0,
-          (secrets.flags as any)[c.id] || 'instance',
-          (secrets.hints as any)[c.id],
+          (secrets.flags as Record<string, string>)[c.id] || 'instance',
+          (secrets.hints as Record<string, string>)[c.id],
           Math.max(10, Math.round(c.points * 0.1)),
         ),
       ),
     );
   }
-  const publicChallenge = (c: any) => ({
+  const publicChallenge = (c: ChallengeRow) => ({
     id: c.id,
     title: c.title,
     category: c.category,
@@ -145,29 +152,28 @@ export function createApi(db: DB, config: Config = {}) {
         .get('cookie')
         ?.match(/(?:^|;\s*)cg_session=([a-f0-9]{64})(?:;|$)/)?.[1];
       const user = session
-        ? await first(
+        ? await first<UserRow>(
             'SELECT u.* FROM users u JOIN sessions s ON s.user_id=u.id WHERE s.id=? AND s.expires>?',
             sha(session),
             Date.now(),
           )
         : null;
       actor = user?.id || null;
-      let body: any = {};
+      let body: Record<string, unknown> = {};
       if (req.method !== 'GET') {
-        body = await readJsonBody(req);
+        const input = await readJsonBody(req);
         check(
-          body && typeof body === 'object' && !Array.isArray(body),
+          input && typeof input === 'object' && !Array.isArray(input),
           400,
           'JSON object required',
         );
+        body = input as Record<string, unknown>;
       }
       if (path === 'auth/register' || path === 'auth/login') {
         check(req.method === 'POST', 405, 'Use POST');
         await rate('auth:' + ip, 15);
-        const email = String(body.email || '')
-            .trim()
-            .toLowerCase(),
-          password = String(body.password || '');
+        const email = textValue(body.email).trim().toLowerCase(),
+          password = textValue(body.password);
         check(
           email.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
           400,
@@ -179,9 +185,12 @@ export function createApi(db: DB, config: Config = {}) {
           'Use a password between 12 and 128 characters',
         );
         await rate('account:' + email, 10);
-        let account = await first('SELECT * FROM users WHERE email=?', email);
+        let account = await first<UserRow>(
+          'SELECT * FROM users WHERE email=?',
+          email,
+        );
         if (path.endsWith('register')) {
-          const name = String(body.name || '').trim();
+          const name = textValue(body.name).trim();
           check(
             /^[a-zA-Z0-9_-]{3,24}$/.test(name),
             400,
@@ -199,12 +208,16 @@ export function createApi(db: DB, config: Config = {}) {
               'player',
               Date.now(),
             );
-            account = await first('SELECT * FROM users WHERE id=?', id);
+            account = await first<UserRow>(
+              'SELECT * FROM users WHERE id=?',
+              id,
+            );
           } catch (e) {
             if (String(e).includes('UNIQUE'))
               throw new ApiError(409, 'Handle or email unavailable');
             throw e;
           }
+          check(account, 500, 'Account creation failed');
           await audit(account.id, 'account.created');
         } else {
           const fallback = 'scrypt$dummy-salt$' + '0'.repeat(64);
@@ -214,6 +227,7 @@ export function createApi(db: DB, config: Config = {}) {
             'Email or password is incorrect',
           );
         }
+        check(account, 401, 'Email or password is incorrect');
         const value = token();
         await db.batch([
           stmt('DELETE FROM sessions WHERE expires<?', Date.now()),
@@ -234,18 +248,18 @@ export function createApi(db: DB, config: Config = {}) {
         return json({ ok: true }, 200, { 'Set-Cookie': cookie('', req, 0) });
       }
       if (path === 'state' && req.method === 'GET') {
-        const cs = await all(
+        const cs = await all<ChallengeRow>(
           'SELECT c.*, (SELECT COUNT(*) FROM solves s WHERE s.challenge_id=c.id) AS solves FROM challenges c WHERE published=1 ORDER BY rowid',
         );
         const p = user ? principal(user) : '';
         const solved = user
-          ? await all(
+          ? await all<Solve>(
               'SELECT challenge_id,points,created FROM solves WHERE principal=?',
               p,
             )
           : [];
         const hints = user
-          ? await all(
+          ? await all<HintUnlock>(
               'SELECT challenge_id,cost FROM unlocks WHERE principal=?',
               p,
             )
@@ -328,7 +342,7 @@ export function createApi(db: DB, config: Config = {}) {
           'Team membership is locked after your first solve or hint purchase to keep scoring fair',
         );
         if (path === 'team/create') {
-          const name = String(body.name || '').trim();
+          const name = textValue(body.name).trim();
           check(
             /^[\w -]{3,32}$/.test(name),
             400,
@@ -374,9 +388,9 @@ export function createApi(db: DB, config: Config = {}) {
           return json({ invite, name }, 201);
         }
         if (path === 'team/join') {
-          const team = await first(
+          const team = await first<TeamRow>(
             'SELECT * FROM teams WHERE invite_hash=?',
-            sha(String(body.invite || '')),
+            sha(textValue(body.invite)),
           );
           check(team, 404, 'Invalid invite code');
           const result = await run(
@@ -394,7 +408,7 @@ export function createApi(db: DB, config: Config = {}) {
       }
       if (path === 'team/rotate-invite' && req.method === 'PATCH') {
         check(user.team_id, 400, 'Create a team first');
-        const team = await first(
+        const team = await first<TeamRow>(
           'SELECT * FROM teams WHERE id=? AND owner_id=?',
           user.team_id,
           user.id,
@@ -415,7 +429,7 @@ export function createApi(db: DB, config: Config = {}) {
         const [, id, action] = match;
         check(req.method === 'POST', 405, 'Use POST');
         await rate('challenge:' + user.id, 30);
-        const c = await first(
+        const c = await first<ChallengeRow>(
           'SELECT * FROM challenges WHERE id=? AND published=1',
           id,
         );
@@ -494,16 +508,26 @@ export function createApi(db: DB, config: Config = {}) {
             503,
             'Lab runner is unavailable; please try again shortly',
           );
-          const data: any = await result.json();
+          const data: unknown = await result.json();
           check(
-            typeof data.url === 'string' && /^https?:\/\//.test(data.url),
+            data &&
+              typeof data === 'object' &&
+              'url' in data &&
+              'expires' in data,
+            502,
+            'Invalid runner response',
+          );
+          check(
+            typeof data.url === 'string' &&
+              /^https?:\/\//.test(data.url) &&
+              typeof data.expires === 'number',
             502,
             'Invalid runner response',
           );
           await audit(user.id, 'instance.started', id);
           return json({ url: data.url, expires: data.expires });
         }
-        const flag = String(body.flag || '').trim();
+        const flag = textValue(body.flag).trim();
         check(
           flag.length > 0 && flag.length <= 256,
           400,
@@ -566,8 +590,8 @@ export function createApi(db: DB, config: Config = {}) {
         await rate('claim:' + user.id, 3);
         check(
           config.ADMIN_BOOTSTRAP_TOKEN &&
-            String(body.token || '').length >= 32 &&
-            safeEqual(String(body.token), config.ADMIN_BOOTSTRAP_TOKEN),
+            textValue(body.token).length >= 32 &&
+            safeEqual(textValue(body.token), config.ADMIN_BOOTSTRAP_TOKEN),
           403,
           'Invalid administrator bootstrap token',
         );
@@ -583,7 +607,9 @@ export function createApi(db: DB, config: Config = {}) {
         );
         if (path === 'admin/challenges' && req.method === 'GET') {
           return json({
-            rows: (await all('SELECT * FROM challenges ORDER BY rowid'))
+            rows: (
+              await all<ChallengeRow>('SELECT * FROM challenges ORDER BY rowid')
+            )
               .filter((c) => user.role === 'admin' || c.author_id === user.id)
               .map((c) => ({
                 ...publicChallenge(c),
@@ -620,7 +646,9 @@ export function createApi(db: DB, config: Config = {}) {
             'Use a lowercase URL slug (3–64 characters)',
           );
           check(
-            categories.slice(1).includes(category) &&
+            typeof category === 'string' &&
+              categories.slice(1).includes(category) &&
+              typeof difficulty === 'string' &&
               ['Easy', 'Medium', 'Hard'].includes(difficulty),
             400,
             'Invalid category or difficulty',
@@ -637,14 +665,16 @@ export function createApi(db: DB, config: Config = {}) {
               'Invalid ' + k,
             );
           check(
-            Number.isInteger(body.points) &&
+            typeof body.points === 'number' &&
+              Number.isInteger(body.points) &&
               body.points >= 50 &&
               body.points <= 1000,
             400,
             'Points must be 50–1000',
           );
           check(
-            Number.isInteger(body.hintCost) &&
+            typeof body.hintCost === 'number' &&
+              Number.isInteger(body.hintCost) &&
               body.hintCost >= 0 &&
               body.hintCost < body.points,
             400,
@@ -659,7 +689,7 @@ export function createApi(db: DB, config: Config = {}) {
             Array.isArray(body.tags) &&
               body.tags.length <= 5 &&
               body.tags.every(
-                (t: any) => typeof t === 'string' && t.length <= 30,
+                (t: unknown) => typeof t === 'string' && t.length <= 30,
               ),
             400,
             'Use up to five short tags',
@@ -696,12 +726,16 @@ export function createApi(db: DB, config: Config = {}) {
           return json({ ok: true }, 201);
         }
         if (path === 'admin/publish' && req.method === 'PATCH') {
+          check(typeof body.id === 'string', 400, 'Challenge ID required');
           check(
             typeof body.published === 'boolean',
             400,
             'Published must be boolean',
           );
-          const c = await first('SELECT * FROM challenges WHERE id=?', body.id);
+          const c = await first<ChallengeRow>(
+            'SELECT * FROM challenges WHERE id=?',
+            body.id,
+          );
           check(c, 404, 'Challenge not found');
           check(
             user.role === 'admin' || c.author_id === user.id,
@@ -721,13 +755,20 @@ export function createApi(db: DB, config: Config = {}) {
           return json({ ok: true });
         }
         if (path === 'admin/role' && req.method === 'PATCH') {
+          check(
+            typeof body.name === 'string' &&
+              /^[a-zA-Z0-9_-]{3,24}$/.test(body.name),
+            400,
+            'Valid challenger handle required',
+          );
           check(user.role === 'admin', 403, 'Administrator access required');
           check(
-            ['player', 'author'].includes(body.role),
+            typeof body.role === 'string' &&
+              ['player', 'author'].includes(body.role),
             400,
             'Role must be player or author',
           );
-          const target = await first(
+          const target = await first<UserRow>(
             'SELECT * FROM users WHERE name=?',
             body.name,
           );

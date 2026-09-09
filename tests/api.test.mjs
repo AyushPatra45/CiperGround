@@ -521,3 +521,46 @@ test('free hints remain free through repeat unlocks and final scoring', async ()
     h.close();
   }
 });
+
+test('JSON types are validated before authentication and administrator writes', async () => {
+  const h = harness();
+  try {
+    assert.equal(
+      (await h.call('auth/login', { email: {}, password: [] })).status,
+      400,
+    );
+    await h.register('organizer');
+    await h.call('admin/claim', { token: 'a'.repeat(64) });
+    assert.equal(
+      (
+        await h.call(
+          'admin/publish',
+          { id: [], published: true },
+          { method: 'PATCH' },
+        )
+      ).status,
+      400,
+    );
+    assert.equal(
+      (
+        await h.call(
+          'admin/role',
+          { name: {}, role: 'author' },
+          { method: 'PATCH' },
+        )
+      ).status,
+      400,
+    );
+    assert.equal(
+      (await h.call('admin/challenges', { ...challenge, points: '250' }))
+        .status,
+      400,
+    );
+    assert.equal(
+      (await h.call('challenges/the-last-commit/submit', { flag: [] })).status,
+      400,
+    );
+  } finally {
+    h.close();
+  }
+});

@@ -10,7 +10,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-A dark-themed, responsive CTF arena with secure player accounts, persistent scoring, team management, author tools, and **12 ready-to-play challenges** across 6 categories.
+A dark-themed, responsive CTF arena with secure player accounts, persistent scoring, team management, author tools, and **12 example challenges (10 downloadable, 2 requiring a Docker runner)** across 6 categories.
 
 </div>
 
@@ -70,17 +70,13 @@ npm ci
 
 ### 2. Set up local environment
 
-Copy the environment template:
+Generate local secrets without overwriting an existing setup:
 
 ```sh
-cp .env.example .dev.vars
+npm run setup:local
 ```
 
-Edit `.dev.vars` and generate unique values for each secret:
-
-```sh
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-```
+This creates ignored `.dev.vars` with unique keys. Do not copy placeholder secrets from `.env.example`. If `.dev.vars` already exists, the helper preserves it; replace any template values manually before use.
 
 ### 3. Run database migrations
 
@@ -100,13 +96,7 @@ Open the printed Local URL in your browser, then create an account.
 
 ## 👑 Admin Setup
 
-To promote your account to administrator:
-
-```sh
-npm run setup:local
-```
-
-This writes secrets to `.dev.vars` without printing them. Restart the dev server, register your organizer account, open **Author Studio**, and enter the bootstrap token. Your account becomes administrator. Remove the token afterward and restart.
+After running the setup helper above, find `ADMIN_BOOTSTRAP_TOKEN` in your local `.dev.vars` file. The helper does not change existing secrets. Restart the dev server, register your organizer account, open **Author Studio**, and enter the bootstrap token. Your account becomes administrator. Remove the token afterward and restart.
 
 ---
 
@@ -141,22 +131,7 @@ TEST_BASE_URL=http://127.0.0.1:4173 npm run test:smoke
 
 ## ☁️ Deploy to Cloudflare
 
-1. Authenticate Wrangler and create a D1 database:
-   ```sh
-   npx wrangler d1 create cipherground
-   ```
-2. Apply remote migrations:
-   ```sh
-   wrangler d1 migrations apply DB --remote --config YOUR_CONFIG
-   ```
-3. Build, set secrets, and deploy:
-   ```sh
-   npm run build
-   wrangler secret put FLAG_KEY --config dist/server/wrangler.json
-   wrangler deploy --config dist/server/wrangler.json
-   ```
-
-> Full deployment guide: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md)
+Use the [complete deployment guide](docs/DEPLOYMENT.md). It covers authentication, the real D1 database binding, migrations, runtime secrets and the compiled Worker. The generated local database ID is a placeholder and must never be used for production.
 
 ---
 
@@ -177,6 +152,8 @@ TEST_BASE_URL=http://127.0.0.1:4173 npm run test:smoke
 
 ## 🧪 Testing
 
+GitHub Actions runs lint, types, unit/integration tests, dependency audit, the production build, compiled HTTP checks, and a separate real Docker isolation job on pushes and pull requests.
+
 ```sh
 # Run all tests (API + Python evidence tests)
 npm test
@@ -186,6 +163,10 @@ npm run test:api
 
 # Smoke tests against compiled server
 TEST_BASE_URL=http://127.0.0.1:4173 npm run test:smoke
+
+# Real Docker isolation and lifecycle checks (Docker must be running)
+npm run lab:build
+npm run test:docker
 
 # Type checking
 npm run typecheck
@@ -246,7 +227,7 @@ cipherground/
 ## ⚠️ Known Limits & Roadmap
 
 **Current limitations (pre-production):**
-- Docker lab infrastructure is included but needs provisioning & isolation validation
+- Docker lab infrastructure and CI isolation checks are included; provision and validate your actual host before public use
 - No email verification or account recovery yet
 - Needs production load testing before a hostile public competition
 - Not independently security-audited
@@ -256,12 +237,14 @@ cipherground/
 - Reviewed write-up submission system
 - Scheduled events & scoreboard freeze
 - MFA and account recovery
-- Isolated per-instance networks or microVMs
+- MicroVM isolation for higher-risk challenge environments
 - Telemetry dashboards and restore drills
 
 ---
 
 ## 🔐 Security
+
+The repository contains example solutions and reproducible answer generation. Treat these as training challenges; create fresh private challenge content for scored competitions. Never commit `.dev.vars`, production databases or runtime secrets.
 
 Session tokens and invite codes are 256-bit random values — only SHA-256 digests are stored. Flag comparisons are constant-time. Lab flags are HMAC-derived per-principal. No user-provided code, SQL, or container images are ever executed by the platform Worker.
 

@@ -47,17 +47,47 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from '@/components/ui/alert-dialog';
-import { api } from '@/lib/client';
+import type { SubmitEvent, ReactNode } from 'react';
+import type { LucideIcon } from 'lucide-react';
+import type { Challenge } from '@/lib/catalog';
+import type {
+  ArenaProps,
+  LeaderboardRow,
+  SubmissionRow,
+  TeamData,
+  AuditData,
+  FlagResult,
+  InstanceResult,
+  HintResult,
+} from '@/lib/contracts';
+import { api, errorMessage } from '@/lib/client';
 import { categories } from '@/lib/catalog';
-export const ErrorMessage = ({ message }: any) =>
+export const ErrorMessage = ({ message }: { message: string }) =>
   message ? (
     <p className="error-message" role="alert">
       {message}
     </p>
   ) : null;
-export function Picker({ value, onChange, options, label, id }: any) {
+export function Picker({
+  value,
+  onChange,
+  options,
+  label,
+  id,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  label: string;
+  id?: string;
+}) {
   return (
-    <Select value={value} onValueChange={onChange}>
+    <Select
+      value={value}
+      onValueChange={(next) => {
+        if (next !== null) onChange(next);
+      }}
+    >
       <SelectTrigger id={id} className="form-select" aria-label={label}>
         <SelectValue />
       </SelectTrigger>
@@ -71,11 +101,14 @@ export function Picker({ value, onChange, options, label, id }: any) {
     </Select>
   );
 }
-export function Account({ state, refresh }: any) {
+export function Account({
+  state,
+  refresh,
+}: Pick<ArenaProps, 'state' | 'refresh'>) {
   const [mode, setMode] = useState('register'),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false);
-  async function submit(e: any) {
+  async function submit(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setError('');
@@ -85,8 +118,8 @@ export function Account({ state, refresh }: any) {
         Object.fromEntries(new FormData(e.currentTarget)),
       );
       await refresh();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(errorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -115,8 +148,8 @@ export function Account({ state, refresh }: any) {
             try {
               await api('auth/logout', {});
               await refresh();
-            } catch (e: any) {
-              setError(e.message);
+            } catch (e) {
+              setError(errorMessage(e));
             }
           }}
         >
@@ -221,34 +254,42 @@ export function Account({ state, refresh }: any) {
     </section>
   );
 }
-export function ChallengeBody({ challenge: c, state, refresh, signIn }: any) {
+export function ChallengeBody({
+  challenge: c,
+  state,
+  refresh,
+  signIn,
+}: ArenaProps & { challenge: Challenge }) {
   const [tab, setTab] = useState('brief'),
     [flag, setFlag] = useState(''),
     [error, setError] = useState(''),
-    [result, setResult] = useState<any>(null),
+    [result, setResult] = useState<FlagResult | null>(null),
     [busy, setBusy] = useState(false),
     [hint, setHint] = useState(''),
     [confirm, setConfirm] = useState(false),
-    [instance, setInstance] = useState<any>(null);
-  const solved = state.solved.some((x: any) => x.challenge_id === c.id),
-    unlocked = state.hints.some((x: any) => x.challenge_id === c.id),
+    [instance, setInstance] = useState<InstanceResult | null>(null);
+  const solved = state.solved.some((x) => x.challenge_id === c.id),
+    unlocked = state.hints.some((x) => x.challenge_id === c.id),
     locked =
       c.prerequisite &&
-      !state.solved.some((x: any) => x.challenge_id === c.prerequisite);
-  async function action(type: string, body = {}) {
+      !state.solved.some((x) => x.challenge_id === c.prerequisite);
+  async function action(type: 'submit' | 'hint' | 'instance', body = {}) {
     setBusy(true);
     setError('');
     try {
-      const data = await api(`challenges/${c.id}/${type}`, body);
-      if (type === 'submit') {
+      const data = await api<FlagResult | HintResult | InstanceResult>(
+        `challenges/${c.id}/${type}`,
+        body,
+      );
+      if ('correct' in data) {
         setResult(data);
         if (data.correct) setFlag('');
       }
-      if (type === 'hint') setHint(data.hint);
-      if (type === 'instance') setInstance(data);
+      if ('hint' in data) setHint(data.hint);
+      if ('url' in data) setInstance(data);
       await refresh();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(errorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -280,7 +321,7 @@ export function ChallengeBody({ challenge: c, state, refresh, signIn }: any) {
               <span>
                 Chained investigation: first solve{' '}
                 <strong>
-                  {state.challenges.find((x: any) => x.id === c.prerequisite)
+                  {state.challenges.find((x) => x.id === c.prerequisite)
                     ?.title || c.prerequisite}
                 </strong>
                 .
@@ -415,7 +456,7 @@ export function ChallengeBody({ challenge: c, state, refresh, signIn }: any) {
               autoComplete="off"
               spellCheck={false}
             />
-            <button className="primary-button" disabled={busy || locked}>
+            <button className="primary-button" disabled={busy || !!locked}>
               {busy ? 'Checking…' : 'Submit flag'}
               <ArrowRight size={15} />
             </button>
@@ -457,16 +498,16 @@ export function ChallengeBody({ challenge: c, state, refresh, signIn }: any) {
     </>
   );
 }
-export function Leaderboard({ state }: any) {
-  const [rows, setRows] = useState<any[]>([]),
+export function Leaderboard({ state }: Pick<ArenaProps, 'state'>) {
+  const [rows, setRows] = useState<LeaderboardRow[]>([]),
     [error, setError] = useState(''),
     [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
     try {
-      setRows((await api('leaderboard')).rows);
+      setRows((await api<{ rows: LeaderboardRow[] }>('leaderboard')).rows);
       setError('');
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(errorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -569,7 +610,17 @@ export function Leaderboard({ state }: any) {
     </section>
   );
 }
-export function Empty({ icon: Icon, title, text, action }: any) {
+export function Empty({
+  icon: Icon,
+  title,
+  text,
+  action,
+}: {
+  icon: LucideIcon;
+  title: string;
+  text: string;
+  action?: ReactNode;
+}) {
   return (
     <div className="panel empty-panel">
       <span className="empty-icon">
@@ -581,14 +632,17 @@ export function Empty({ icon: Icon, title, text, action }: any) {
     </div>
   );
 }
-export function Submissions({ state, signIn }: any) {
-  const [rows, setRows] = useState<any[]>([]),
+export function Submissions({
+  state,
+  signIn,
+}: Pick<ArenaProps, 'state' | 'signIn'>) {
+  const [rows, setRows] = useState<SubmissionRow[]>([]),
     [error, setError] = useState('');
   useEffect(() => {
     if (state.user)
-      api('submissions')
+      api<{ rows: SubmissionRow[] }>('submissions')
         .then((d) => setRows(d.rows))
-        .catch((e) => setError(e.message));
+        .catch((e) => setError(errorMessage(e)));
   }, [state.user, state.solved.length]);
   if (!state.user)
     return (
@@ -657,31 +711,31 @@ export function Submissions({ state, signIn }: any) {
     </>
   );
 }
-export function Team({ state, refresh, signIn }: any) {
-  const [data, setData] = useState<any>(null),
+export function Team({ state, refresh, signIn }: ArenaProps) {
+  const [data, setData] = useState<TeamData | null>(null),
     [invite, setInvite] = useState(''),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false),
     [copied, setCopied] = useState(false);
   useEffect(() => {
     if (state.user)
-      api('team')
+      api<TeamData>('team')
         .then(setData)
-        .catch((e) => setError(e.message));
+        .catch((e) => setError(errorMessage(e)));
   }, [state.user, state.team?.id]);
-  async function submit(e: any, type: string) {
+  async function submit(e: SubmitEvent<HTMLFormElement>, type: string) {
     e.preventDefault();
     setBusy(true);
     setError('');
     try {
-      const d = await api(
+      const d = await api<{ invite?: string }>(
         'team/' + type,
         Object.fromEntries(new FormData(e.currentTarget)),
       );
       setInvite(d.invite || '');
       await refresh();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(errorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -724,14 +778,14 @@ export function Team({ state, refresh, signIn }: any) {
           <div className="team-columns">
             <section className="panel">
               <h3>The minds behind the flags</h3>
-              {data?.members.map((m: any) => (
+              {data?.members.map((m) => (
                 <div className="member-row" key={m.id}>
                   <span className="avatar">
                     {m.name.slice(0, 2).toUpperCase()}
                   </span>
                   <strong>{m.name}</strong>
                   <span>
-                    {m.id === data.team.owner_id ? 'Captain' : 'Member'}
+                    {m.id === data.team?.owner_id ? 'Captain' : 'Member'}
                   </span>
                 </div>
               ))}
@@ -766,11 +820,15 @@ export function Team({ state, refresh, signIn }: any) {
                   className="outline-button"
                   onClick={async () => {
                     try {
-                      const d = await api('team/rotate-invite', {}, 'PATCH');
-                      setInvite(d.invite);
+                      const d = await api<{ invite?: string }>(
+                        'team/rotate-invite',
+                        {},
+                        'PATCH',
+                      );
+                      setInvite(d.invite || '');
                       setCopied(false);
-                    } catch (e: any) {
-                      setError(e.message);
+                    } catch (e) {
+                      setError(errorMessage(e));
                     }
                   }}
                 >
@@ -918,9 +976,9 @@ export function Guide() {
     </>
   );
 }
-export function Studio({ state, refresh, signIn }: any) {
-  const [rows, setRows] = useState<any[]>([]),
-    [audit, setAudit] = useState<any>(null),
+export function Studio({ state, refresh, signIn }: ArenaProps) {
+  const [rows, setRows] = useState<Challenge[]>([]),
+    [audit, setAudit] = useState<AuditData | null>(null),
     [error, setError] = useState(''),
     [success, setSuccess] = useState(''),
     [creating, setCreating] = useState(false),
@@ -928,26 +986,26 @@ export function Studio({ state, refresh, signIn }: any) {
     [category, setCategory] = useState('Web'),
     [difficulty, setDifficulty] = useState('Medium'),
     [publish, setPublish] = useState('Draft');
-  const allowed = ['admin', 'author'].includes(state.user?.role);
+  const allowed = ['admin', 'author'].includes(state.user?.role || '');
   const role = state.user?.role;
   const load = useCallback(async () => {
     if (!allowed) return;
     try {
-      setRows((await api('admin/challenges')).rows);
-      if (role === 'admin') setAudit(await api('admin/audit'));
-    } catch (e: any) {
-      setError(e.message);
+      setRows((await api<{ rows: Challenge[] }>('admin/challenges')).rows);
+      if (role === 'admin') setAudit(await api<AuditData>('admin/audit'));
+    } catch (e) {
+      setError(errorMessage(e));
     }
   }, [allowed, role]);
   useEffect(() => {
     const initial = setTimeout(() => void load(), 0);
     return () => clearTimeout(initial);
   }, [load]);
-  async function create(e: any) {
+  async function create(e: SubmitEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
     setError('');
-    const f: any = Object.fromEntries(new FormData(e.currentTarget));
+    const f = Object.fromEntries(new FormData(e.currentTarget));
     try {
       await api('admin/challenges', {
         ...f,
@@ -955,7 +1013,7 @@ export function Studio({ state, refresh, signIn }: any) {
         difficulty,
         points: Number(f.points),
         hintCost: Number(f.hintCost),
-        tags: f.tags
+        tags: (typeof f.tags === 'string' ? f.tags : '')
           .split(',')
           .map((t: string) => t.trim())
           .filter(Boolean),
@@ -965,8 +1023,8 @@ export function Studio({ state, refresh, signIn }: any) {
       setSuccess('Challenge saved.');
       await load();
       await refresh();
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(errorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -1005,8 +1063,8 @@ export function Studio({ state, refresh, signIn }: any) {
                 Object.fromEntries(new FormData(e.currentTarget)),
               );
               await refresh();
-            } catch (e: any) {
-              setError(e.message);
+            } catch (e) {
+              setError(errorMessage(e));
             }
           }}
         >
@@ -1187,8 +1245,8 @@ export function Studio({ state, refresh, signIn }: any) {
                         );
                         await load();
                         await refresh();
-                      } catch (e: any) {
-                        setError(e.message);
+                      } catch (e) {
+                        setError(errorMessage(e));
                       }
                     }}
                   >
@@ -1203,7 +1261,7 @@ export function Studio({ state, refresh, signIn }: any) {
       {audit && (
         <>
           <div className="admin-metrics">
-            {Object.entries(audit.metrics).map(([k, v]: any) => (
+            {Object.entries(audit.metrics).map(([k, v]) => (
               <div className="panel" key={k}>
                 <strong>{v}</strong>
                 <span>{k}</span>
@@ -1220,8 +1278,8 @@ export function Studio({ state, refresh, signIn }: any) {
                   await api('admin/role', { ...f, role: 'author' }, 'PATCH');
                   setSuccess('Author access granted.');
                   await load();
-                } catch (e: any) {
-                  setError(e.message);
+                } catch (e) {
+                  setError(errorMessage(e));
                 }
               }}
             >
@@ -1235,7 +1293,7 @@ export function Studio({ state, refresh, signIn }: any) {
             <section className="panel">
               <h3>Recent audit events</h3>
               <div className="audit-list">
-                {audit.rows.slice(0, 8).map((a: any, i: number) => (
+                {audit.rows.slice(0, 8).map((a, i) => (
                   <div key={i}>
                     <strong>{a.event}</strong>
                     <small>

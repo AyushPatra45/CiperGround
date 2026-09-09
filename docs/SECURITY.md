@@ -22,12 +22,15 @@
 6. The scaffold contained high-severity dependency advisories. React/RSC, Vinext, Vite and undici were patched; the final production audit reports zero known vulnerabilities.
 7. Dynamically authored challenge URLs were not opened after state loaded. Deferred URL resolution now opens them and reports unavailable IDs.
 
+8. Runner input validation could throw for non-string fields and startup failures could orphan networks. Requests now reject malformed types, failed starts clean up, and regression tests cover these paths. Independent runners use ownership labels so restart cleanup does not remove another runner's labs.
+9. Explicit API contracts and unknown-input validation replace loose boundary types; the full lint gate now passes.
+
 ## Remaining production requirements and limits
 
 This is a working application foundation, not a completed independent penetration test or an assurance of hostile multi-tenant safety.
 
 - Docker is not installed in the build environment. The two lab applications were tested through real HTTP requests; Docker isolation, network policy, TTL/restart behavior and multi-host capacity have not been executed here.
-- The runner creates a separate internal network per instance, removes it during cleanup and reclaims labeled resources on restart. Validate this policy on the actual host, including host-service and metadata access. A dedicated VM per high-risk challenge is stronger than Docker alone.
+- The runner validates JSON field types, bounds request bodies and read time, cleans failed starts, creates a separate internal network per instance, and scopes restart cleanup to its `RUNNER_ID` label. Validate this policy on the actual host, including host-service and metadata access. A dedicated VM per high-risk challenge is stronger than Docker alone.
 - The runner is privileged through Docker and must live on a dedicated disposable host. Do not mount the Docker socket into the platform or expose the runner directly to the public Internet. Place its authenticated control API behind TLS and a network allowlist.
 - Application registration does not include email verification, self-service password reset, MFA or recovery codes. Bootstrap administration uses a server-configured secret; remove that environment value after claiming the organizer account.
 - No competition scheduling/freeze, account suspension UI, team leave/transfer, challenge-edit form, file-upload scanning or per-event tenancy is implemented. Authors can create and publish/unpublish challenges; existing evidence/metadata can be updated through reviewed source/data migrations.

@@ -95,12 +95,14 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return;
-    onSelect(api);
+    const initial = requestAnimationFrame(() => onSelect(api));
     api.on('reInit', onSelect);
     api.on('select', onSelect);
 
     return () => {
-      api?.off('select', onSelect);
+      cancelAnimationFrame(initial);
+      api.off('reInit', onSelect);
+      api.off('select', onSelect);
     };
   }, [api, onSelect]);
 
@@ -118,16 +120,15 @@ function Carousel({
         canScrollNext,
       }}
     >
-      <div
+      <section
         onKeyDownCapture={handleKeyDown}
         className={cn('relative', className)}
-        role="region"
         aria-roledescription="carousel"
         data-slot="carousel"
         {...props}
       >
         {children}
-      </div>
+      </section>
     </CarouselContext.Provider>
   );
 }
@@ -153,10 +154,12 @@ function CarouselContent({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
+/* oxlint-disable jsx-a11y/prefer-tag-over-role -- ARIA slides are groups, not form fieldsets. */
 function CarouselItem({ className, ...props }: React.ComponentProps<'div'>) {
   const { orientation } = useCarousel();
 
   return (
+    // A slide is an ARIA group, not a form fieldset.
     <div
       role="group"
       aria-roledescription="slide"
@@ -170,6 +173,7 @@ function CarouselItem({ className, ...props }: React.ComponentProps<'div'>) {
     />
   );
 }
+/* oxlint-enable jsx-a11y/prefer-tag-over-role */
 
 function CarouselPrevious({
   className,

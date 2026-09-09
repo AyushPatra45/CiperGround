@@ -1,7 +1,9 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { api } from '@/lib/client';
+import type { LucideIcon } from 'lucide-react';
+import type { ArenaState } from '@/lib/contracts';
+import { api, errorMessage } from '@/lib/client';
 import { useArenaTools } from './webmcp';
 import {
   Account,
@@ -70,7 +72,7 @@ const routes: Record<string, string> = {
   Account: '/account',
 };
 
-const icons: any = {
+const icons: Record<string, LucideIcon> = {
   Web: Globe,
   Forensics: Fingerprint,
   Cryptography: KeyRound,
@@ -112,7 +114,7 @@ export default function Arena({
     [selected, setSelected] = useState<Challenge | null>(
       catalog.find((c) => c.id === initialChallenge) || null,
     );
-  const [state, setState] = useState<any>({
+  const [state, setState] = useState<ArenaState>({
       user: null,
       team: null,
       challenges: catalog,
@@ -126,10 +128,10 @@ export default function Arena({
     [status, setStatus] = useState('All statuses');
   const refresh = useCallback(async () => {
     try {
-      setState(await api('state'));
+      setState(await api<ArenaState>('state'));
       setLoadError('');
-    } catch (e: any) {
-      setLoadError(e.message);
+    } catch (e) {
+      setLoadError(errorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -236,12 +238,14 @@ export default function Arena({
             </div>
             <div className="nav-label">WORKSPACE</div>
             <nav>
-              {[
-                [LayoutGrid, 'Challenges'],
-                [Trophy, 'Leaderboard'],
-                [Users, 'My team'],
-                [History, 'Submissions'],
-              ].map(([I, n]: any) => (
+              {(
+                [
+                  [LayoutGrid, 'Challenges'],
+                  [Trophy, 'Leaderboard'],
+                  [Users, 'My team'],
+                  [History, 'Submissions'],
+                ] satisfies [LucideIcon, string][]
+              ).map(([I, n]) => (
                 <button
                   key={n}
                   className={'nav-item ' + (page === n ? 'active' : '')}
@@ -257,10 +261,12 @@ export default function Arena({
             </nav>
             <div className="nav-label second">RESOURCES</div>
             <nav>
-              {[
-                [BookOpen, 'Field guide'],
-                [Shield, 'Author studio'],
-              ].map(([I, n]: any) => (
+              {(
+                [
+                  [BookOpen, 'Field guide'],
+                  [Shield, 'Author studio'],
+                ] satisfies [LucideIcon, string][]
+              ).map(([I, n]) => (
                 <button
                   key={n}
                   className={'nav-item ' + (page === n ? 'active' : '')}
@@ -352,36 +358,38 @@ export default function Arena({
             </div>
           </div>
           <section className="stats-strip">
-            {[
+            {(
               [
-                Flag,
-                String(state.challenges.length),
-                'Challenges available',
-                'Across 6 disciplines',
-              ],
-              [
-                CheckCircle2,
-                `${state.solved.length} / ${state.challenges.length}`,
-                'Your progress',
-                state.solved.length
-                  ? 'Keep the discoveries coming'
-                  : 'Every solve starts somewhere',
-              ],
-              [
-                Trophy,
-                state.points.toLocaleString(),
-                'Your total points',
-                state.solved.length
-                  ? 'Earned through discovery'
-                  : 'Make your first move',
-              ],
-              [
-                Users,
-                state.team ? 'Team' : 'Solo',
-                'Your team',
-                state.team?.name || 'Better minds, together',
-              ],
-            ].map(([I, v, l, n]: any) => (
+                [
+                  Flag,
+                  String(state.challenges.length),
+                  'Challenges available',
+                  'Across 6 disciplines',
+                ],
+                [
+                  CheckCircle2,
+                  `${state.solved.length} / ${state.challenges.length}`,
+                  'Your progress',
+                  state.solved.length
+                    ? 'Keep the discoveries coming'
+                    : 'Every solve starts somewhere',
+                ],
+                [
+                  Trophy,
+                  state.points.toLocaleString(),
+                  'Your total points',
+                  state.solved.length
+                    ? 'Earned through discovery'
+                    : 'Make your first move',
+                ],
+                [
+                  Users,
+                  state.team ? 'Team' : 'Solo',
+                  'Your team',
+                  state.team?.name || 'Better minds, together',
+                ],
+              ] satisfies [LucideIcon, string | number, string, string][]
+            ).map(([I, v, l, n]) => (
               <div className="stat" key={l}>
                 <span className="stat-icon">
                   <I size={18} />

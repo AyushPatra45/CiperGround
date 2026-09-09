@@ -17,11 +17,14 @@ export type Challenge = {
   description: string;
   tags: string[];
   artifact: string;
+  hintCost?: number;
+  published?: boolean;
+  authorId?: string | null;
   featured?: boolean;
-  environment?: string;
+  environment?: string | null;
   solves?: number;
   solved?: boolean;
-  prerequisite?: string;
+  prerequisite?: string | null;
 };
 export const catalog: Challenge[] = [
   {

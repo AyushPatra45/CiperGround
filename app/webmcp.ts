@@ -1,9 +1,25 @@
 'use client';
 import { useEffect } from 'react';
+import type { ArenaState } from '@/lib/contracts';
 import { api } from '@/lib/client';
+type ToolDefinition = {
+  name: string;
+  title: string;
+  description: string;
+  inputSchema: object;
+  annotations: object;
+  execute: (input: unknown) => Promise<unknown>;
+};
+type ModelContext = {
+  registerTool: (
+    tool: ToolDefinition,
+    options: { signal: AbortSignal },
+  ) => unknown;
+};
 export function useArenaTools(refresh: () => Promise<void>) {
   useEffect(() => {
-    const context = (document as any).modelContext;
+    const context = (document as Document & { modelContext?: ModelContext })
+      .modelContext;
     if (!context?.registerTool) return;
     const lifecycle = new AbortController();
     const tools = [
@@ -18,10 +34,15 @@ export function useArenaTools(refresh: () => Promise<void>) {
           additionalProperties: false,
         },
         annotations: { readOnlyHint: true, untrustedContentHint: true },
-        execute: async (input: any) => {
-          if (!input || Object.keys(input).length)
+        execute: async (input: unknown) => {
+          if (
+            !input ||
+            typeof input !== 'object' ||
+            Array.isArray(input) ||
+            Object.keys(input).length
+          )
             throw new Error('Expected an empty object');
-          const state = await api('state');
+          const state = await api<ArenaState>('state');
           return { challenges: state.challenges, points: state.points };
         },
       },
@@ -40,9 +61,13 @@ export function useArenaTools(refresh: () => Promise<void>) {
           additionalProperties: false,
         },
         annotations: { readOnlyHint: false, untrustedContentHint: true },
-        execute: async (input: any) => {
+        execute: async (input: unknown) => {
           if (
             !input ||
+            typeof input !== 'object' ||
+            Array.isArray(input) ||
+            !('challengeId' in input) ||
+            !('flag' in input) ||
             typeof input.challengeId !== 'string' ||
             !/^[a-z0-9-]{3,64}$/.test(input.challengeId) ||
             typeof input.flag !== 'string' ||

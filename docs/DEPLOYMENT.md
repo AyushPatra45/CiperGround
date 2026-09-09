@@ -6,6 +6,7 @@ Use Node.js 22.13+ (Node 24 LTS recommended), npm and Python 3.10+. The shipped 
 
 ```sh
 npm ci
+npm run setup:local
 npm run db:migrate
 npm run dev -- --hostname 127.0.0.1
 ```
@@ -31,7 +32,7 @@ This writes unique local secrets to ignored `.dev.vars` without printing them. R
 
 ## Local isolated web labs
 
-Docker Engine or Docker Desktop must be installed and running. This step was not executable on the development machine.
+Docker Engine or Docker Desktop must be installed and running. Run `npm run test:docker` after building to verify resource settings, per-instance connectivity isolation, crash recovery, and expiry cleanup. This requires an actual Docker daemon; the normal Python runner tests mock Docker and do not prove isolation.
 
 ```sh
 npm run lab:build
@@ -41,7 +42,7 @@ npm run lab:runner
 
 Set the same `RUNNER_TOKEN` in `.dev.vars`, `RUNNER_URL=http://127.0.0.1:9090`, and an independently generated `FLAG_KEY`. Restart the app. The two Web challenges can now request their own temporary containers. The runner only listens on loopback by default, returns loopback lab URLs, and removes expired instances every ten seconds.
 
-The runner defaults to 20 concurrent instances and 30-minute lifetimes. Relevant runner variables: `RUNNER_TOKEN`, `RUNNER_PORT`, `RUNNER_BIND_IP`, `LAB_PUBLIC_HOST`, `LAB_BIND_IP`, `MAX_LABS`, `LAB_IMAGE`. These configure the separate runner process, not the Worker.
+The runner defaults to 20 concurrent instances and 30-minute lifetimes. Relevant runner variables: `RUNNER_TOKEN`, `RUNNER_PORT`, `RUNNER_BIND_IP`, `LAB_PUBLIC_HOST`, `LAB_BIND_IP`, `MAX_LABS`, `LAB_IMAGE`, `RUNNER_ID`, `LAB_TTL_SECONDS`. Keep a stable, unique `RUNNER_ID` per runner (default `default`); restart cleanup only reclaims its own labeled resources. `LAB_TTL_SECONDS` defaults to 1800 and must be 1–3600. If upgrading the original runner, remove its legacy `cipherground.lab=true` containers and networks during a maintenance window; they have no runner-ownership label. These configure the separate runner process, not the Worker.
 
 ## Hosted Sites deployment
 
@@ -55,12 +56,37 @@ The initial deployment is owner-private. Sharing the platform with a public comp
 
 ## Deploy on your own Cloudflare account
 
-1. Authenticate Wrangler and create a D1 database: `npx wrangler d1 create cipherground`.
-2. Create a private deployment config with the returned database ID, `DB` binding and `drizzle` migration directory. Do not deploy the placeholder ID in the local config.
-3. Apply migrations to that database with `wrangler d1 migrations apply DB --remote --config YOUR_CONFIG`.
-4. Run `npm run build`, then adapt the generated `dist/server/wrangler.json` database ID and Worker name for your account. Preserve its ESM module rules and `dist/client` asset location. Treat this generated configuration as build output, not source.
-5. Set runtime secrets with `wrangler secret put ... --config dist/server/wrangler.json`, and deploy with `wrangler deploy --config dist/server/wrangler.json`.
-6. Add HTTPS, domain routing, global WAF/rate rules, request-size limits, uptime monitoring and backups. Run smoke tests on staging before allowing competitors.
+Use your own Cloudflare account. Wrangler login opens an authorization flow you must complete.
+
+```sh
+npx wrangler login
+npx wrangler d1 create cipherground
+```
+
+Copy the returned **database ID** (not an API token) into the environment for the deployment preparation command:
+
+```sh
+CF_D1_DATABASE_ID=YOUR_DATABASE_UUID CF_WORKER_NAME=cipherground npm run deploy:prepare
+```
+
+This creates `dist/server/wrangler.deploy.json` from the built Worker configuration, preserving module rules and assets while binding the real database and enabling Worker observability. It rejects missing and placeholder database IDs. The configuration lives in ignored build output; regenerate it after each build.
+
+Review the configuration, then run:
+
+```sh
+npx wrangler d1 migrations apply DB --remote --config dist/server/wrangler.deploy.json
+npx wrangler secret put FLAG_KEY --config dist/server/wrangler.deploy.json
+npx wrangler secret put ADMIN_BOOTSTRAP_TOKEN --config dist/server/wrangler.deploy.json
+npx wrangler deploy --config dist/server/wrangler.deploy.json
+```
+
+Use separately generated 32-byte random secrets; enter them at Wrangler's prompt, never in Git or shell command arguments. After claiming your organizer account, delete the bootstrap secret with `npx wrangler secret delete ADMIN_BOOTSTRAP_TOKEN --config dist/server/wrangler.deploy.json`. Add `RUNNER_URL` and `RUNNER_TOKEN` using the same `secret put` command when a dedicated lab host is ready. Ten downloadable challenges work while the runner is disabled.
+
+A workers.dev deployment exposes the website publicly. Before deploying, verify that you intend public access or configure Cloudflare Access for staging. Configure HTTPS domain routing, edge rate rules, request-size limits, uptime monitoring, billing alerts and D1 backups. Perform a staging smoke test before admitting competitors; the bundled state-mutating smoke script is deliberately restricted to localhost.
+
+## GitHub verification
+
+`.github/workflows/ci.yml` runs on pushes and pull requests with read-only repository permissions and pinned official actions. Its two jobs validate the platform and real Docker behavior on an isolated Linux CI runner. No deployment credentials are required. Require both jobs in GitHub branch protection before merging release changes. Passing CI is not a substitute for validating the public lab host firewall and network policy.
 
 ## Public lab host
 

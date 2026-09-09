@@ -19,7 +19,9 @@
     "lab:build": "docker compose --profile build build",
     "lab:runner": "python3 challenges/runner.py",
     "test:smoke": "node scripts/smoke.mjs",
-    "setup:local": "node scripts/setup-local.mjs"
+    "setup:local": "node scripts/setup-local.mjs",
+    "test:docker": "python3 tests/docker_integration.py",
+    "deploy:prepare": "npm run build && node scripts/prepare-deploy.mjs"
   },
   "dependencies": {
     "react": "19.2.8",

@@ -30,7 +30,7 @@ export function instanceFlag(
 ) {
   return `CTF{${createHmac('sha256', secret).update(`${principal}:${challenge}`).digest('hex').slice(0, 32)}}`;
 }
-export function principal(user: any) {
+export function principal(user: { id: string; team_id: string | null }) {
   return user.team_id ? 'team:' + user.team_id : 'user:' + user.id;
 }
 export class ApiError extends Error {
@@ -41,6 +41,10 @@ export class ApiError extends Error {
     super(message);
   }
 }
-export function check(ok: any, status: number, message: string): asserts ok {
+export function check(
+  ok: unknown,
+  status: number,
+  message: string,
+): asserts ok {
   if (!ok) throw new ApiError(status, message);
 }
