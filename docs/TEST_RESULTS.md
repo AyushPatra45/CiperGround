@@ -8,7 +8,7 @@ Verification performed on macOS with Node.js 26.0.0 and Python 3.14.2, September
 | TypeScript type check | Passed |
 | Production dependency audit | Zero known vulnerabilities after framework and undici patches |
 | Backend integration tests | 15 passed |
-| Evidence, lab HTTP and runner regression tests | 13 passed |
+| Evidence, lab/gateway HTTP and runner regression tests | 16 passed |
 | Compiled-server HTTP smoke checks | 32 passed |
 | Browser registration and team creation | Passed with local test account |
 | Browser incorrect/correct flag submission | Passed; solve persisted and score was 90 after a 10-point hint |
@@ -16,7 +16,7 @@ Verification performed on macOS with Node.js 26.0.0 and Python 3.14.2, September
 | Browser responsive check | 390px mobile inspected; header overflow found, corrected and verified at exactly 390px page width; desktop layout checked at 1440px |
 | WebMCP | Both tools registered; valid list/duplicate submit and invalid inputs verified |
 | Public JavaScript secret scan | No flag hashes, password implementation, organizer answer or locked-hint text found |
-| Docker build and network isolation | Not run: Docker is not installed |
+| Docker build, isolation and lifecycle | Passed on GitHub Linux runner; Docker remains absent locally |
 | Full lint policy | Passed; typed API contracts and component fixes |
 | Hosted publication | Blocked: existing Sites project returns NOT_FOUND and current account lists no sites |
 
@@ -42,6 +42,12 @@ Production build, TypeScript, all 14 API tests, all 9 Python tests and 32 HTTP s
 
 The remote `main` and `codex/cipherground-platform` refs were verified at `c74f8718e0471acf72e5a8a27934124707fe6e44`, matching the user's local README/license commit. Tracked files contained no actual local runtime secrets, and Git history contained no `.dev.vars`, `.wrangler`, `node_modules`, or `outputs` paths. The sample solutions are intentionally present in source; these examples should not be used as secret live competition material.
 
-Added pinned, read-only GitHub Actions jobs for the platform and real Docker integration. The Docker job exercises configuration limits, unauthorized requests, reuse, capacity, cross-instance networking, intended flag retrieval, hard-crash recovery and TTL cleanup. Local runner regression tests mock Docker and are reported separately from real isolation tests. Until a successful Docker job or host run is recorded, actual Docker behavior remains unverified.
+Added pinned, read-only GitHub Actions jobs for the platform and real Docker integration. The Docker job exercises configuration limits, unauthorized requests, reuse, capacity, cross-instance networking, intended flag retrieval, hard-crash recovery and TTL cleanup. Local runner regression tests mock Docker and are reported separately from real isolation tests. The real Docker run subsequently passed after the ingress correction described below.
 
 Verified the deployment helper rejects missing IDs and preserves asset/module configuration with a test database ID. It does not deploy or create paid resources. Production deployment still requires the user's hosting authentication and a real D1 database.
+
+## Real Docker verification
+
+[GitHub Actions run 34385687549](https://github.com/AyushPatra45/CiperGround/actions/runs/34385687549) passed both `platform` and `docker-isolation` on commit `de64904`. The first run exposed missing published ports for internal-only containers; the fix introduced per-instance fixed-upstream gateways. The successful rerun verified two reachable labs on separate internal networks, denied cross-instance TCP access, container UID/read-only/capability/CPU/RAM/PID settings, authentication and malformed input, instance reuse, capacity rejection, the intended cache exploit, gateway rejection of absolute-form proxy requests, recovery after a hard runner crash, and automatic expiry cleanup. This proves the tested Linux CI configuration, not an arbitrary production host firewall or resistance to Docker escapes.
+
+Three additional local real-HTTP gateway regression tests passed: both intended challenge chains, plus fixed-destination/request-framing enforcement. The repository now has 15 API tests and 16 Python tests, plus 32 compiled-server HTTP checks and the separate Docker integration script. Browser sign-in restored the persisted team and 90-point score, and the typed WebMCP flag tool rejected malformed input and prevented duplicate points.

@@ -29,7 +29,7 @@
 
 This is a working application foundation, not a completed independent penetration test or an assurance of hostile multi-tenant safety.
 
-- Docker is not installed in the build environment. The two lab applications were tested through real HTTP requests; Docker isolation, network policy, TTL/restart behavior and multi-host capacity have not been executed here.
+- Docker is not installed locally, but the Docker image, resource configuration, cross-instance networking, TTL and restart cleanup passed on a GitHub-hosted Linux runner. Validate the actual production host separately; multi-host capacity and Docker escape resistance were not tested.
 - The runner validates JSON field types, bounds request bodies and read time, cleans failed starts, creates a separate internal network per instance, and scopes restart cleanup to its `RUNNER_ID` label. Validate this policy on the actual host, including host-service and metadata access. A dedicated VM per high-risk challenge is stronger than Docker alone.
 - The runner is privileged through Docker and must live on a dedicated disposable host. Do not mount the Docker socket into the platform or expose the runner directly to the public Internet. Place its authenticated control API behind TLS and a network allowlist.
 - Application registration does not include email verification, self-service password reset, MFA or recovery codes. Bootstrap administration uses a server-configured secret; remove that environment value after claiming the organizer account.

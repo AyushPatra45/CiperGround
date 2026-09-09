@@ -32,7 +32,7 @@ This writes unique local secrets to ignored `.dev.vars` without printing them. R
 
 ## Local isolated web labs
 
-Docker Engine or Docker Desktop must be installed and running. Run `npm run test:docker` after building to verify resource settings, per-instance connectivity isolation, crash recovery, and expiry cleanup. This requires an actual Docker daemon; the normal Python runner tests mock Docker and do not prove isolation.
+Docker Engine or Docker Desktop must be installed and running. Run `npm run test:docker` after building to verify resource settings, per-instance connectivity isolation, crash recovery, and expiry cleanup. This requires an actual Docker daemon. The separate integration job passed on GitHub Linux CI; normal Python runner tests mock Docker and do not prove isolation.
 
 ```sh
 npm run lab:build
