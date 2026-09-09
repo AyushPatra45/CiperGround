@@ -49,3 +49,7 @@ Authentication uses application-owned email/password accounts because the projec
 Twelve examples span all six requested disciplines. Each has an organizer explanation and reproducible evidence. The two web labs require a vulnerability chain and use unique runtime flags. Afterimage depends on solving Packet Whisperer. Other investigations require reconstruction, clock normalization, modular arithmetic, state inversion, public-record cross-referencing, or resource-constrained scheduling.
 
 AI tools are allowed. These examples aim to reward genuine problem-solving, but do not guarantee resistance to capable automated solvers. The initial artifacts are compact educational fixtures, not full forensic disk images or production malware. See `docs/SOLUTIONS.md` for intended answers; keep that file and this repository private during competition.
+
+### Lab ingress
+
+Each instance has an internal Docker network containing the vulnerable app and a fixed-upstream gateway. The app has no published ports. The gateway also joins its own ingress bridge and publishes a loopback port; it forwards only HTTP requests to that instance's app and holds no flag secret. The app is limited to 64 MB/0.5 CPU; its gateway to 32 MB/0.25 CPU. Both are non-root, read-only and capability-restricted. Container/network ownership labels scope cleanup to the runner. This follows Docker's internal-backend/front-end network pattern ([Docker networking documentation](https://docs.docker.com/engine/network/)). Public TLS routing and host firewall rules remain deployment responsibilities.

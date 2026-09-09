@@ -39,3 +39,7 @@ This is a working application foundation, not a completed independent penetratio
 - Authentication uses synchronous scrypt; size the paid Worker CPU budget for its cost and load-test concurrency. No large-scale load or DDoS test was run.
 - Health checks verify DB/schema availability. Configure uptime checks, centralized log retention, billing alerts, D1 backups and restore drills before a public launch.
 - Dependency scan and final validation results are recorded in `TEST_RESULTS.md`; a passing scan is not a guarantee of vulnerability absence.
+
+## Docker ingress correction
+
+Linux CI exposed that an internal-only container had no published port. Each lab now uses a trusted fixed-upstream gateway with a separate ingress bridge. The vulnerable app remains internal and has no host-published port; the gateway rejects absolute-form proxy requests, bounds bodies/responses, strips hop-by-hop headers and never accepts an arbitrary destination. Gateways add 32 MB and 0.25 CPU per active instance. The test checks both apps are reachable through their gateways before probing cross-instance connectivity, preventing a stopped listener from falsely appearing isolated.

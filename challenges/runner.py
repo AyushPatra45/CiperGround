@@ -29,7 +29,7 @@ def docker(*args):
 
 
 def remove(name):
-    for args in [('rm', '-f', name), ('network', 'rm', name + '-net')]:
+    for args in [('rm', '-f', name + '-proxy'), ('rm', '-f', name), ('network', 'rm', name + '-edge'), ('network', 'rm', name + '-net')]:
         try:
             docker(*args)
         except (subprocess.SubprocessError, OSError):
@@ -81,8 +81,17 @@ def launch(data):
                    '--network', name + '-net', '--read-only', '--cap-drop', 'ALL',
                    '--security-opt', 'no-new-privileges:true', '--memory', '64m', '--cpus', '0.5',
                    '--pids-limit', '32', '--ulimit', 'nofile=128:128', '--tmpfs', '/tmp:rw,noexec,nosuid,size=8m',
-                   '-p', BIND + '::8080', '-e', 'LAB_MODE=' + mode, '-e', 'CHALLENGE_FLAG=' + flag, IMAGE)
-            port = docker('port', name, '8080/tcp').splitlines()[0].rsplit(':', 1)[1]
+                   '-e', 'LAB_MODE=' + mode, '-e', 'CHALLENGE_FLAG=' + flag, IMAGE)
+            # Internal-only containers cannot publish host ports on current Docker.
+            # A fixed-upstream gateway bridges ingress without giving the vulnerable
+            # application a default route or access to other instance networks.
+            docker('network', 'create', '--label', 'cipherground.lab=true', '--label', f'cipherground.runner={RUNNER_ID}', name + '-edge')
+            docker('run', '-d', '--name', name + '-proxy', '--label', 'cipherground.lab=true', '--label', f'cipherground.runner={RUNNER_ID}',
+                   '--network', name + '-edge', '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true',
+                   '--memory', '32m', '--cpus', '0.25', '--pids-limit', '32', '--ulimit', 'nofile=128:128',
+                   '-p', BIND + '::8080', '-e', 'LAB_UPSTREAM=' + name, IMAGE, 'python', '-B', 'gateway.py')
+            docker('network', 'connect', name + '-net', name + '-proxy')
+            port = docker('port', name + '-proxy', '8080/tcp').splitlines()[0].rsplit(':', 1)[1]
             if not port.isdigit():
                 raise ValueError('Invalid Docker port')
             lab = {'name': name, 'url': f'http://{HOST}:{port}', 'expires': int(time.time() * 1000) + TTL * 1000}

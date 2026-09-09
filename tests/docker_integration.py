@@ -1,4 +1,6 @@
 """Opt-in real Docker checks. Uses a unique runner namespace; never removes other labs."""
+from http.client import HTTPConnection
+from urllib.parse import urlsplit
 import hashlib
 import json
 import os
@@ -73,6 +75,7 @@ try:
     for container in config:
         host = container['HostConfig']
         assert container['Config']['User'] == '65534:65534'
+        assert not container['NetworkSettings']['Ports'].get('8080/tcp')
         assert host['ReadonlyRootfs'] and host['Memory'] == 64 * 1024 * 1024
         assert host['PidsLimit'] == 32 and host['NanoCpus'] == 500000000
         assert 'ALL' in host['CapDrop'] and 'no-new-privileges:true' in host['SecurityOpt']
@@ -80,10 +83,24 @@ try:
         assert json.loads(docker('network', 'inspect', network))[0]['Internal']
         nets.append(network)
     assert nets[0] != nets[1]
+    gateways = json.loads(docker('inspect', *[name + '-proxy' for name in names]))
+    for gateway in gateways:
+        assert gateway['HostConfig']['ReadonlyRootfs'] and gateway['HostConfig']['Memory'] == 32 * 1024 * 1024
+        assert gateway['NetworkSettings']['Ports']['8080/tcp']
+        assert all(not value.startswith('CHALLENGE_FLAG=') for value in gateway['Config']['Env'])
+        assert len(gateway['NetworkSettings']['Networks']) == 2
+    wait_until(lambda: lab_request(first['url'] + '/'))
+    wait_until(lambda: lab_request(second['url'] + '/'))
     peer_ip = config[1]['NetworkSettings']['Networks'][nets[1]]['IPAddress']
     probe = "import socket,sys; s=socket.socket(); s.settimeout(2); sys.exit(1 if s.connect_ex((sys.argv[1],8080)) == 0 else 0)"
     docker('exec', names[0], 'python', '-c', probe, peer_ip)
-    wait_until(lambda: lab_request(first['url'] + '/'))
+    address = urlsplit(first['url'])
+    connection = HTTPConnection(address.hostname, address.port, timeout=5)
+    try:
+        connection.request('GET', 'http://example.test/')
+        assert connection.getresponse().status == 400
+    finally:
+        connection.close()
     assert lab_request(first['url'] + '/support/preview?path=/invoice/private%3Bpreview=1')['status'] == 'preview cached'
     assert lab_request(first['url'] + '/gateway?path=/invoice/private')['flag'] == data['flag']
     # A hard crash leaves resources; the next instance of this runner reclaims them.
