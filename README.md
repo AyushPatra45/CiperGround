@@ -12,6 +12,8 @@
 
 A dark-themed, responsive CTF arena with secure player accounts, persistent scoring, team management, author tools, and **12 example challenges (10 downloadable, 2 requiring a Docker runner)** across 6 categories.
 
+**Live arena:** [cipherground.cipherground.workers.dev](https://cipherground.cipherground.workers.dev/)
+
 </div>
 
 ---

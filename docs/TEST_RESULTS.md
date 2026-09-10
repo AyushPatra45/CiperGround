@@ -1,6 +1,6 @@
 # Verification results
 
-Verification performed on macOS with Node.js 26.0.0 and Python 3.14.2, September 8–9, 2026.
+Verification performed on macOS with Node.js 26.0.0 and Python 3.14.2, September 8–10, 2026.
 
 | Check | Result |
 | --- | --- |
@@ -18,7 +18,8 @@ Verification performed on macOS with Node.js 26.0.0 and Python 3.14.2, September
 | Public JavaScript secret scan | No flag hashes, password implementation, organizer answer or locked-hint text found |
 | Docker build, isolation and lifecycle | Passed on GitHub Linux runner; Docker remains absent locally |
 | Full lint policy | Passed; typed API contracts and component fixes |
-| Hosted publication | Blocked: existing Sites project returns NOT_FOUND and current account lists no sites |
+| Public Cloudflare deployment | Passed; Worker, assets, secrets and APAC D1 binding published on workers.dev |
+| Live production journey | 29 checks passed; pages, headers, D1 health, registration, login, admin claim, flag validation, persistence and ten artifacts |
 
 The API tests exercise real SQLite with the production handler and a small D1 adapter; they do not emulate Cloudflare platform throttling. The smoke tests use the compiled Worker under Wrangler, not an in-memory mock. The two vulnerable lab services were started separately and exercised over HTTP: direct unauthorized paths failed, and the intended exploit chains retrieved their test flags.
 
@@ -30,7 +31,7 @@ The browser checks verified actual persisted player behavior. They are manual ag
 
 ## Scope not claimed
 
-No independent penetration test, public adversarial event, sustained load test, Docker escape assessment, backup restore drill, screen-reader audit, or cloud lab provisioning was performed. The production preview is not evidence of production-scale capacity. Test accounts were created only in the local SQLite database.
+No independent penetration test, public adversarial event, sustained load test, Docker escape assessment, backup restore drill, screen-reader audit, or cloud lab provisioning was performed. The production deployment is not evidence of production-scale capacity. The temporary production launch-check account and its submissions were removed after verification.
 
 ## Resumed verification
 
@@ -44,7 +45,13 @@ The remote `main` and `codex/cipherground-platform` refs were verified at `c74f8
 
 Added pinned, read-only GitHub Actions jobs for the platform and real Docker integration. The Docker job exercises configuration limits, unauthorized requests, reuse, capacity, cross-instance networking, intended flag retrieval, hard-crash recovery and TTL cleanup. Local runner regression tests mock Docker and are reported separately from real isolation tests. The real Docker run subsequently passed after the ingress correction described below.
 
-Verified the deployment helper rejects missing IDs and preserves asset/module configuration with a test database ID. It does not deploy or create paid resources. Production deployment still requires the user's hosting authentication and a real D1 database.
+Verified the deployment helper rejects missing IDs, preserves asset/module configuration, explicitly enables the workers.dev route, and disables preview URLs. The production deployment uses the authenticated Cloudflare account and its real D1 database.
+
+## Public deployment verification
+
+CipherGround was published at [cipherground.cipherground.workers.dev](https://cipherground.cipherground.workers.dev/) with Worker observability enabled. The live health endpoint returned HTTP 200 with `database: connected`, the expected CSP and hardening headers were present, all eight main routes rendered, all twelve challenges loaded, and all ten downloadable artifacts were reachable.
+
+A temporary production account completed registration, administrator bootstrap, wrong and correct flag submissions, submission-history persistence, logout and login. All 29 checks passed. Its sessions, audit events, solve, submissions and user row were then removed; a D1 query confirmed zero remaining launch-check users. The isolated runner remains intentionally disabled until a separate hardened Docker host is provisioned.
 
 ## Real Docker verification
 

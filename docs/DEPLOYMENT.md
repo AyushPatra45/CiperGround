@@ -69,7 +69,7 @@ Copy the returned **database ID** (not an API token) into the environment for th
 CF_D1_DATABASE_ID=YOUR_DATABASE_UUID CF_WORKER_NAME=cipherground npm run deploy:prepare
 ```
 
-This creates `dist/server/wrangler.deploy.json` from the built Worker configuration, preserving module rules and assets while binding the real database and enabling Worker observability. It rejects missing and placeholder database IDs. The configuration lives in ignored build output; regenerate it after each build.
+This creates `dist/server/wrangler.deploy.json` from the built Worker configuration, preserving module rules and assets while binding the real database, enabling Worker observability and the workers.dev route, and disabling extra preview URLs. It rejects missing and placeholder database IDs. The configuration lives in ignored build output; regenerate it after each build.
 
 Review the configuration, then run:
 

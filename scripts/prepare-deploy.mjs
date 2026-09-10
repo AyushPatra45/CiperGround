@@ -8,6 +8,8 @@ if (!/^[a-z0-9][a-z0-9-]{0,62}$/.test(workerName)) throw new Error('Use a lowerc
 const config = JSON.parse(readFileSync('dist/server/wrangler.json', 'utf8'));
 config.name = workerName;
 config.d1_databases = [{ binding: 'DB', database_name: process.env.CF_D1_DATABASE_NAME || 'cipherground', database_id: databaseId, migrations_dir: '../../drizzle' }];
+config.workers_dev = true;
+config.preview_urls = false;
 config.observability = { enabled: true };
 writeFileSync('dist/server/wrangler.deploy.json', JSON.stringify(config, null, 2) + '\n');
 console.log('Prepared dist/server/wrangler.deploy.json. Review it, apply migrations, configure secrets, then deploy.');
