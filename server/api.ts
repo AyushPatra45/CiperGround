@@ -10,6 +10,7 @@ import {
   passwordValid,
   safeEqual,
   instanceFlag,
+  personalToken,
   principal,
   ApiError,
   check,
@@ -36,6 +37,11 @@ const json = (
     },
   });
 const textValue = (value: unknown) => (typeof value === 'string' ? value : '');
+const dynamicChallenges = new Set(
+  catalog
+    .filter((challenge) => challenge.dynamic)
+    .map((challenge) => challenge.id),
+);
 export function createApi(db: DB, config: Config = {}) {
   const stmt = (s: string, ...args: unknown[]) => db.prepare(s).bind(...args);
   const first = <T = { id: string }>(s: string, ...args: unknown[]) =>
@@ -74,10 +80,19 @@ export function createApi(db: DB, config: Config = {}) {
     );
   }
   async function seed() {
-    const existing = await first('SELECT id FROM challenges LIMIT 1');
-    if (existing) return;
+    const placeholders = catalog.map(() => '?').join(',');
+    const existing = new Set(
+      (
+        await all<{ id: string }>(
+          `SELECT id FROM challenges WHERE id IN (${placeholders})`,
+          ...catalog.map((challenge) => challenge.id),
+        )
+      ).map((challenge) => challenge.id),
+    );
+    const missing = catalog.filter((challenge) => !existing.has(challenge.id));
+    if (!missing.length) return;
     await db.batch(
-      catalog.map((c) =>
+      missing.map((c) =>
         stmt(
           'INSERT OR IGNORE INTO challenges(id,title,category,difficulty,points,summary,description,tags,artifact,environment,prerequisite,featured,flag_hash,hint,hint_cost,published) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)',
           c.id,
@@ -114,6 +129,7 @@ export function createApi(db: DB, config: Config = {}) {
     featured: !!c.featured,
     solves: c.solves || 0,
     hintCost: c.hint_cost,
+    dynamic: dynamicChallenges.has(c.id),
     published: !!c.published,
     authorId: c.author_id,
   });
@@ -283,6 +299,9 @@ export function createApi(db: DB, config: Config = {}) {
           challenges: cs.map((c) => ({
             ...publicChallenge(c),
             solved: solved.some((s) => s.challenge_id === c.id),
+            ...(user && dynamicChallenges.has(c.id)
+              ? { personalToken: personalToken(c.flag_hash, p, c.id) }
+              : {}),
           })),
           solved,
           hints,
@@ -539,10 +558,22 @@ export function createApi(db: DB, config: Config = {}) {
           503,
           'Instance flags are not configured',
         );
-        const expected = c.environment
-          ? sha(instanceFlag(config.FLAG_KEY!, p, id))
-          : c.flag_hash;
-        const correct = safeEqual(sha(flag), expected);
+        let correct = false;
+        if (c.environment) {
+          correct = safeEqual(
+            sha(flag),
+            sha(instanceFlag(config.FLAG_KEY!, p, id)),
+          );
+        } else if (dynamicChallenges.has(id)) {
+          const parts = flag.match(/^CTF\{(.{1,220}):([A-F0-9]{12})\}$/);
+          correct = !!(
+            parts &&
+            safeEqual(sha(parts[1]), c.flag_hash) &&
+            safeEqual(parts[2], personalToken(c.flag_hash, p, id))
+          );
+        } else {
+          correct = safeEqual(sha(flag), c.flag_hash);
+        }
         const results = await db.batch([
           stmt(
             "INSERT INTO submissions(id,principal,user_id,challenge_id,correct,created) SELECT ?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM users WHERE id=? AND COALESCE(team_id,'')=?)",

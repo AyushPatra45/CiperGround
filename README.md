@@ -10,7 +10,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-A dark-themed, responsive CTF arena with secure player accounts, persistent scoring, team management, author tools, and **12 example challenges (10 downloadable, 2 requiring a Docker runner)** across 6 categories.
+A dark-themed, responsive CTF arena with secure player accounts, persistent scoring, team management, author tools, and **16 example challenges (14 downloadable, 2 requiring a Docker runner)** across 6 categories.
 
 **Live arena:** [cipherground.cipherground.workers.dev](https://cipherground.cipherground.workers.dev/)
 
@@ -22,12 +22,14 @@ A dark-themed, responsive CTF arena with secure player accounts, persistent scor
 
 | Category | Highlights |
 |---|---|
-| 🎯 **Challenges** | 12 investigations across Web, Forensics, Cryptography, OSINT, Reverse Engineering & Misc |
+| 🎯 **Challenges** | 16 investigations across Web, Forensics, Cryptography, OSINT, Reverse Engineering & Misc |
 | 👤 **Auth** | Email/password registration, hashed sessions, protected roles |
 | 🏆 **Scoring** | Server-validated flags, one-time hint penalties, persistent leaderboard with tie-breaking |
 | 👥 **Teams** | Teams of 5, hashed invite codes, captain rotation, shared solves |
 | ✍️ **Author Studio** | Draft/publish challenges, author grants, audit events & metrics |
 | 🐳 **Web Labs** | 2 intentionally vulnerable Docker labs with per-principal flags |
+| 🧬 **Dynamic flags** | Stable solo/team-specific tokens for selected downloadable investigations |
+| 🖼️ **Steganography** | Reproducible multi-file PNG LSB challenges compatible with `zsteg` |
 | 🔒 **Security** | Rate-limited API, security headers, constant-time flag comparison |
 | 🧪 **Tests** | Automated backend, evidence, lab-HTTP & compiled server smoke tests |
 

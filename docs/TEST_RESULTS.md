@@ -7,9 +7,9 @@ Verification performed on macOS with Node.js 26.0.0 and Python 3.14.2, September
 | Production build | Passed; Worker ESM and browser assets generated |
 | TypeScript type check | Passed |
 | Production dependency audit | Zero known vulnerabilities after framework and undici patches |
-| Backend integration tests | 15 passed |
-| Evidence, lab/gateway HTTP and runner regression tests | 16 passed |
-| Compiled-server HTTP smoke checks | 32 passed |
+| Backend integration tests | 16 passed |
+| Evidence, lab/gateway HTTP and runner regression tests | 20 passed |
+| Compiled-server HTTP smoke checks | 36 passed |
 | Browser registration and team creation | Passed with local test account |
 | Browser incorrect/correct flag submission | Passed; solve persisted and score was 90 after a 10-point hint |
 | Browser mobile menu | Passed; selecting Leaderboard closes menu |
@@ -58,3 +58,7 @@ A temporary production account completed registration, administrator bootstrap, 
 [GitHub Actions run 34385687549](https://github.com/AyushPatra45/CiperGround/actions/runs/34385687549) passed both `platform` and `docker-isolation` on commit `de64904`. The first run exposed missing published ports for internal-only containers; the fix introduced per-instance fixed-upstream gateways. The successful rerun verified two reachable labs on separate internal networks, denied cross-instance TCP access, container UID/read-only/capability/CPU/RAM/PID settings, authentication and malformed input, instance reuse, capacity rejection, the intended cache exploit, gateway rejection of absolute-form proxy requests, recovery after a hard runner crash, and automatic expiry cleanup. This proves the tested Linux CI configuration, not an arbitrary production host firewall or resistance to Docker escapes.
 
 Three additional local real-HTTP gateway regression tests passed: both intended challenge chains, plus fixed-destination/request-framing enforcement. The repository now has 15 API tests and 16 Python tests, plus 32 compiled-server HTTP checks and the separate Docker integration script. Browser sign-in restored the persisted team and 90-point score, and the typed WebMCP flag tool rejected malformed input and prevented duplicate points.
+
+## Long-form challenge expansion — September 22, 2026
+
+Added four original fan-themed archives, raising the catalog to 16 challenges and the downloadable set to 14. The evidence tests independently unpack and solve the new archives: they decode the exact PNG RGB LSB channel used by `zsteg`, reconstruct four-part messages, validate a chained SHA-256 raven ledger, reverse its columnar transposition, and confirm the rickroll and flag-shaped strings are decoys. API coverage verifies that selected downloadable challenges expose different stable tokens to different principals and reject copied cross-principal flags. The current local run passed 16 API tests, 20 Python tests and 36 compiled-server HTTP checks; lint, TypeScript and the production build also passed. Production Worker version `1c936066-c0e9-4131-9d2a-75ded1d65e52` was activated successfully; its public state returned all 16 challenges and the new ZIP endpoint returned HTTP 200 with `application/zip`.

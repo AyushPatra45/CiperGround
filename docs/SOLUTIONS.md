@@ -61,3 +61,27 @@ Recover the initial state as 0x41 XOR 0x1c. The decoded byte, rather than the ci
 Start A and B together. Compare C before D against D before C, then overlap E with the remaining work. A critical-path bound alone does not enforce worker capacity.
 
 `CTF{12:11}`
+
+## hawkins-fourth-signal
+
+Normalize both clocks before correlating. The four matching camera-local seconds are 22:12:17, 22:18:17, 22:25:17 and 22:33:17. Inspect those frames’ sequential RGB LSBs and keep only payloads marked VALID KQ4.
+
+`CTF{THE_GATE_CLOSES_AT_0315:<personal token>}`
+
+## nevermore-murder-board
+
+The valid witnesses are Ada, Bram, Dahlia and Faye. Convert the east-wing display by subtracting seven minutes, then read Q4/2, M2/5, A7/1 and V3/4 in alphabetical witness order.
+
+`CTF{RAVENS_REMEMBER_UNEDITED_INK}`
+
+## ravens-of-the-seven-realms
+
+Validate each registered SHA-256 seal and follow PREVIOUS from GENESIS. The valid route is FROSTHOLD → EMBERFORD → MOONKEEP → SUNSPIRE, giving key FEMS. Place ciphertext columns back in alphabetical key order before reading rows.
+
+`CTF{THE_TRUE_HEIR_BURNS_THE_LEDGER:<personal token>}`
+
+## pensieve-missing-hour
+
+The controller confirms memories 021, 034, 055 and 089. Sort them by original capture time, then extract sequential RGB LSB text from each corresponding portrait.
+
+`CTF{MEMORY_LEAVES_A_SILVER_TRACE}`

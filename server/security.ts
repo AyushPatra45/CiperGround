@@ -30,6 +30,17 @@ export function instanceFlag(
 ) {
   return `CTF{${createHmac('sha256', secret).update(`${principal}:${challenge}`).digest('hex').slice(0, 32)}}`;
 }
+export function personalToken(
+  challengeHash: string,
+  principal: string,
+  challenge: string,
+) {
+  return createHmac('sha256', challengeHash)
+    .update(`${principal}:${challenge}:evidence-v1`)
+    .digest('hex')
+    .slice(0, 12)
+    .toUpperCase();
+}
 export function principal(user: { id: string; team_id: string | null }) {
   return user.team_id ? 'team:' + user.team_id : 'user:' + user.id;
 }

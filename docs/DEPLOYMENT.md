@@ -80,7 +80,7 @@ npx wrangler secret put ADMIN_BOOTSTRAP_TOKEN --config dist/server/wrangler.depl
 npx wrangler deploy --config dist/server/wrangler.deploy.json
 ```
 
-Use separately generated 32-byte random secrets; enter them at Wrangler's prompt, never in Git or shell command arguments. After claiming your organizer account, delete the bootstrap secret with `npx wrangler secret delete ADMIN_BOOTSTRAP_TOKEN --config dist/server/wrangler.deploy.json`. Add `RUNNER_URL` and `RUNNER_TOKEN` using the same `secret put` command when a dedicated lab host is ready. Ten downloadable challenges work while the runner is disabled.
+Use separately generated 32-byte random secrets; enter them at Wrangler's prompt, never in Git or shell command arguments. After claiming your organizer account, delete the bootstrap secret with `npx wrangler secret delete ADMIN_BOOTSTRAP_TOKEN --config dist/server/wrangler.deploy.json`. Add `RUNNER_URL` and `RUNNER_TOKEN` using the same `secret put` command when a dedicated lab host is ready. Fourteen downloadable challenges work while the runner is disabled.
 
 A workers.dev deployment exposes the website publicly. Before deploying, verify that you intend public access or configure Cloudflare Access for staging. Configure HTTPS domain routing, edge rate rules, request-size limits, uptime monitoring, billing alerts and D1 backups. Perform a staging smoke test before admitting competitors; the bundled state-mutating smoke script is deliberately restricted to localhost.
 

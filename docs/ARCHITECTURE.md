@@ -18,6 +18,7 @@ flowchart LR
 - The application never runs submitted code, SQL, shell commands, Docker arguments or user-provided container images.
 - The Docker daemon and its socket are absent from the platform Worker. The runner is a separate control service on an isolated host.
 - Lab flags are HMAC-derived from the challenge ID and solo/team principal. Restarting an instance retains that principal’s flag. Players cannot claim other teams’ flags.
+- Selected downloadable investigations produce a shared evidence-derived CORE plus a 12-hex token derived for the current solo/team principal. The server separately validates the CORE hash and token in constant time, so copying another principal’s completed flag fails.
 - Downloadable challenge flags are SHA-256 hashes in organizer-only server source and D1. Flag matching is constant-time. Flags are high-entropy secrets or evidence-derived answers, not passwords.
 - Session tokens and invite codes are 256-bit random values. Only their SHA-256 digests are persisted.
 
@@ -46,7 +47,7 @@ Authentication uses application-owned email/password accounts because the projec
 
 ## Challenge design
 
-Twelve examples span all six requested disciplines. Each has an organizer explanation and reproducible evidence. The two web labs require a vulnerability chain and use unique runtime flags. Afterimage depends on solving Packet Whisperer. Other investigations require reconstruction, clock normalization, modular arithmetic, state inversion, public-record cross-referencing, or resource-constrained scheduling.
+Sixteen examples span all six requested disciplines. Each has an organizer explanation and reproducible evidence. The two web labs require a vulnerability chain and use unique runtime flags. Four long-form fan-themed investigations add nested ZIP evidence, clock normalization, hash chains, source validation, transposition cryptography, deliberate false flags and original PNG least-significant-bit payloads. Two use solo/team-specific downloadable flags. Afterimage, Ravens of the Seven Realms and The Pensieve of the Missing Hour have prerequisite solves.
 
 AI tools are allowed. These examples aim to reward genuine problem-solving, but do not guarantee resistance to capable automated solvers. The initial artifacts are compact educational fixtures, not full forensic disk images or production malware. See `docs/SOLUTIONS.md` for intended answers; keep that file and this repository private during competition.
 

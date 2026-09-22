@@ -25,6 +25,9 @@ export type Challenge = {
   solves?: number;
   solved?: boolean;
   prerequisite?: string | null;
+  /** The evidence yields a core answer; the final suffix is unique per solo player/team. */
+  dynamic?: boolean;
+  personalToken?: string;
 };
 export const catalog: Challenge[] = [
   {
@@ -174,5 +177,58 @@ export const catalog: Challenge[] = [
       'A recovery scheduler must restore services with dependencies and only two workers. Find the minimum possible completion time and the time that the vault becomes available under the optimal schedule. Submit CTF{makespan:vault_ready_time}. Durations are integer minutes; tasks cannot be interrupted.',
     tags: ['Dependency graph', 'Scheduling'],
     artifact: 'dependency-hell.txt',
+  },
+  {
+    id: 'hawkins-fourth-signal',
+    title: 'Hawkins: The Fourth Signal',
+    category: 'Forensics',
+    difficulty: 'Hard',
+    points: 700,
+    summary: 'Four cameras went dark. Only one timeline belongs to this world.',
+    description:
+      'An original 1980s supernatural-mystery case archive contains clock-skewed radio logs, contact sheets, maintenance notes, and many tempting fake flags. Reconstruct the true outage sequence, identify the four frames selected by the calibrated receiver, and inspect their PNG bit planes with zsteg or an equivalent LSB tool. Join the recovered fragments in event order. Your evidence yields the CORE; append the personal token shown below and submit CTF{CORE:TOKEN}. No outside browsing is required.',
+    tags: ['PNG steganography', 'Timeline reconstruction', 'Dynamic flag'],
+    artifact: 'hawkins-fourth-signal.zip',
+    featured: true,
+    dynamic: true,
+  },
+  {
+    id: 'nevermore-murder-board',
+    title: 'Nevermore: A Murder of Clues',
+    category: 'OSINT',
+    difficulty: 'Hard',
+    points: 600,
+    summary: 'Everyone left a statement. Almost everyone lied about the time.',
+    description:
+      'Work through a self-contained gothic academy case board: class schedules, edited notices, witness statements, a library index, and a raven photograph. Normalize bell times, eliminate impossible witnesses, then use the surviving shelf references to extract a phrase from the catalog. Several flags and one famous video link are deliberate dead ends. Submit the one flag supported by every independent source.',
+    tags: ['Source validation', 'Constraint solving', 'Decoy analysis'],
+    artifact: 'nevermore-murder-board.zip',
+  },
+  {
+    id: 'ravens-of-the-seven-realms',
+    title: 'Ravens of the Seven Realms',
+    category: 'Cryptography',
+    difficulty: 'Hard',
+    points: 750,
+    summary: 'The seals are genuine. The order in which they arrived is not.',
+    description:
+      'A fantasy court intercepted a directory of raven dispatches. Validate chained wax-seal digests, reconstruct the only route consistent with travel times and weather closures, reject forged but well-formed scrolls, and use the authentic route as a columnar-transposition key. The plaintext provides a CORE rather than a reusable flag; append your personal token as CTF{CORE:TOKEN}. This challenge is fully fictional and offline.',
+    tags: ['Hash chains', 'Transposition cipher', 'Dynamic flag'],
+    artifact: 'ravens-of-the-seven-realms.zip',
+    prerequisite: 'common-ground',
+    dynamic: true,
+  },
+  {
+    id: 'pensieve-missing-hour',
+    title: 'The Pensieve of the Missing Hour',
+    category: 'Misc',
+    difficulty: 'Hard',
+    points: 700,
+    summary: 'A memory can be altered. Its bookkeeping is harder to fool.',
+    description:
+      'Explore an original magical-archive evidence tree containing damaged memory indexes, portraits, checksum ledgers, mirrored annotations, and nested faculty folders. Determine which memories survived the clock rollback, collect four image fragments, inspect the correct color-channel bit planes, and apply the curator’s ordering rule. Decoy flags fail either the checksum ledger or the chronology. Submit CTF{recovered_phrase}.',
+    tags: ['File archaeology', 'Image steganography', 'Checksums'],
+    artifact: 'pensieve-missing-hour.zip',
+    prerequisite: 'afterimage',
   },
 ];

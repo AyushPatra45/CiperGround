@@ -108,8 +108,23 @@ for (const id of [
   'off-the-grid',
   'signal-lost',
   'dependency-hell',
+  'hawkins-fourth-signal',
+  'nevermore-murder-board',
+  'ravens-of-the-seven-realms',
+  'pensieve-missing-hour',
 ]) {
-  const r = await request('/artifacts/' + id + '.txt');
+  const r = await request(
+    '/artifacts/' +
+      id +
+      ([
+        'hawkins-fourth-signal',
+        'nevermore-murder-board',
+        'ravens-of-the-seven-realms',
+        'pensieve-missing-hour',
+      ].includes(id)
+        ? '.zip'
+        : '.txt'),
+  );
   assert.equal(r.status, 200);
   assert.ok((await r.text()).length > 150);
   checks++;

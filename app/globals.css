@@ -1381,6 +1381,53 @@ label input::placeholder {
   margin-top: 12px;
   color: #a9bd96;
 }
+.token-panel {
+  margin-top: 18px;
+  border: 1px solid #4a4931;
+  background: linear-gradient(135deg, #24271d, #1d2225);
+  padding: 18px 20px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+.token-panel > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #d9cb91;
+}
+.token-panel span {
+  display: grid;
+  gap: 5px;
+}
+.token-panel small {
+  color: #9fa79a;
+  line-height: 1.5;
+}
+.token-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #5d6242;
+  border-radius: 6px;
+  padding: 10px 13px;
+  background: #151a16;
+  color: #dbeaaf;
+  font: 600 13px monospace;
+  cursor: pointer;
+  white-space: nowrap;
+}
+@media (max-width: 620px) {
+  .token-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .token-value {
+    justify-content: center;
+  }
+}
 .hint-panel {
   padding: 20px 0;
   display: flex;

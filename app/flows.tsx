@@ -335,7 +335,7 @@ export function ChallengeBody({
                 <strong>Investigation files</strong>
                 <small>
                   {c.artifact
-                    ? 'Source material and evidence · TXT'
+                    ? `Source material and evidence · ${c.artifact.split('.').pop()?.toUpperCase()}`
                     : 'All evidence is in the mission brief'}
                 </small>
               </div>
@@ -350,6 +350,36 @@ export function ChallengeBody({
               </a>
             )}
           </div>
+          {c.dynamic && (
+            <div className="token-panel">
+              <div>
+                <KeyRound size={18} />
+                <span>
+                  <strong>Personal flag token</strong>
+                  <small>
+                    Shared by your current team. Add it after the CORE recovered
+                    from the evidence.
+                  </small>
+                </span>
+              </div>
+              {c.personalToken ? (
+                <button
+                  className="token-value"
+                  type="button"
+                  title="Copy personal token"
+                  onClick={() =>
+                    void navigator.clipboard.writeText(c.personalToken!)
+                  }
+                >
+                  {c.personalToken} <Copy size={14} />
+                </button>
+              ) : (
+                <button className="outline-button" onClick={signIn}>
+                  Sign in to reveal token
+                </button>
+              )}
+            </div>
+          )}
           {c.environment && (
             <div className="lab-panel">
               <div>

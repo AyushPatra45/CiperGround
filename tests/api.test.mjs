@@ -112,7 +112,7 @@ test('registration uses hashed sessions, private cookies, durable accounts and r
     assert.match(r.headers.get('set-cookie'), /HttpOnly/);
     assert.match(r.headers.get('set-cookie'), /SameSite=Lax/);
     const state = await h.call('state');
-    assert.equal(state.data.challenges.length, 12);
+    assert.equal(state.data.challenges.length, 16);
     assert.equal(state.data.user.name, 'tester');
     const text = JSON.stringify(state.data);
     assert.ok(!text.includes('flag_hash'));
@@ -124,6 +124,45 @@ test('registration uses hashed sessions, private cookies, durable accounts and r
     assert.match(u.password, /^scrypt\$/);
   } finally {
     h.close();
+  }
+});
+test('dynamic evidence flags use stable principal-specific tokens', async () => {
+  const first = harness();
+  const second = harness();
+  try {
+    await first.register('dynamic_one');
+    await second.register('dynamic_two');
+    const firstChallenge = (await first.call('state')).data.challenges.find(
+      (c) => c.id === 'hawkins-fourth-signal',
+    );
+    const secondChallenge = (await second.call('state')).data.challenges.find(
+      (c) => c.id === 'hawkins-fourth-signal',
+    );
+    assert.equal(firstChallenge.dynamic, true);
+    assert.match(firstChallenge.personalToken, /^[A-F0-9]{12}$/);
+    assert.notEqual(
+      firstChallenge.personalToken,
+      secondChallenge.personalToken,
+    );
+    assert.equal(
+      (
+        await second.call('challenges/hawkins-fourth-signal/submit', {
+          flag: `CTF{THE_GATE_CLOSES_AT_0315:${firstChallenge.personalToken}}`,
+        })
+      ).data.correct,
+      false,
+    );
+    assert.equal(
+      (
+        await first.call('challenges/hawkins-fourth-signal/submit', {
+          flag: `CTF{THE_GATE_CLOSES_AT_0315:${firstChallenge.personalToken}}`,
+        })
+      ).data.correct,
+      true,
+    );
+  } finally {
+    first.close();
+    second.close();
   }
 });
 test('wrong login rejected, logout revokes session, correct login restores state', async () => {
