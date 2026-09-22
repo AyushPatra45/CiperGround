@@ -10,7 +10,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-4.0-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-A dark-themed, responsive CTF arena with secure player accounts, persistent scoring, team management, author tools, and **16 example challenges (14 downloadable, 2 requiring a Docker runner)** across 6 categories.
+A dark-themed, responsive CTF arena with secure player accounts, persistent scoring, team management, author tools, and **19 example challenges (14 downloadable, 3 hosted interactive sites, 2 requiring a Docker runner)** across 6 categories.
 
 **Live arena:** [cipherground.cipherground.workers.dev](https://cipherground.cipherground.workers.dev/)
 
@@ -20,18 +20,20 @@ A dark-themed, responsive CTF arena with secure player accounts, persistent scor
 
 ## ✨ Features
 
-| Category | Highlights |
-|---|---|
-| 🎯 **Challenges** | 16 investigations across Web, Forensics, Cryptography, OSINT, Reverse Engineering & Misc |
-| 👤 **Auth** | Email/password registration, hashed sessions, protected roles |
-| 🏆 **Scoring** | Server-validated flags, one-time hint penalties, persistent leaderboard with tie-breaking |
-| 👥 **Teams** | Teams of 5, hashed invite codes, captain rotation, shared solves |
-| ✍️ **Author Studio** | Draft/publish challenges, author grants, audit events & metrics |
-| 🐳 **Web Labs** | 2 intentionally vulnerable Docker labs with per-principal flags |
-| 🧬 **Dynamic flags** | Stable solo/team-specific tokens for selected downloadable investigations |
-| 🖼️ **Steganography** | Reproducible multi-file PNG LSB challenges compatible with `zsteg` |
-| 🔒 **Security** | Rate-limited API, security headers, constant-time flag comparison |
-| 🧪 **Tests** | Automated backend, evidence, lab-HTTP & compiled server smoke tests |
+| Category                 | Highlights                                                                                     |
+| ------------------------ | ---------------------------------------------------------------------------------------------- |
+| 🎯 **Challenges**        | 19 investigations across Web, Forensics, Cryptography, OSINT, Reverse Engineering & Misc       |
+| 👤 **Auth**              | Email/password registration, hashed sessions, protected roles                                  |
+| 🏆 **Scoring**           | Server-validated flags, one-time hint penalties, persistent leaderboard with tie-breaking      |
+| 👥 **Teams**             | Teams of 5, hashed invite codes, captain rotation, shared solves                               |
+| ✍️ **Author Studio**     | Draft/publish challenges, author grants, audit events & metrics                                |
+| 🐳 **Web Labs**          | 2 intentionally vulnerable Docker labs with per-principal flags                                |
+| 🌐 **Hosted puzzles**    | 3 standalone websites: DevTools console, multi-view timeline, and live HTTP/API reconstruction |
+| 🧬 **Dynamic flags**     | Stable solo/team-specific tokens for selected downloadable and hosted investigations           |
+| 🎨 **Challenge artwork** | Individual responsive artwork on every library card and challenge detail view                  |
+| 🖼️ **Steganography**     | Reproducible multi-file PNG LSB challenges compatible with `zsteg`                             |
+| 🔒 **Security**          | Rate-limited API, security headers, constant-time flag comparison                              |
+| 🧪 **Tests**             | Automated backend, evidence, lab-HTTP & compiled server smoke tests                            |
 
 ---
 
@@ -141,16 +143,17 @@ Use the [complete deployment guide](docs/DEPLOYMENT.md). It covers authenticatio
 
 ## 🗺️ Routes
 
-| Route | Description |
-|---|---|
-| `/` | Challenge library — search, filter by category, difficulty & solve status |
-| `/challenges/:id` | Shareable challenge page, evidence downloads, hints, flag submission |
-| `/leaderboard` | Live persistent rankings, auto-refreshed every 30 s |
-| `/team` | Create / join team, manage roster, rotate invite code |
-| `/submissions` | Your last 100 flag attempts |
-| `/account` | Register, sign in, profile, sign out |
-| `/studio` | Author challenge creation, publishing, metrics & audit *(restricted)* |
-| `/guide` | Competition rules, scoring, hints & scope |
+| Route             | Description                                                               |
+| ----------------- | ------------------------------------------------------------------------- |
+| `/`               | Challenge library — search, filter by category, difficulty & solve status |
+| `/challenges/:id` | Shareable challenge page, evidence downloads, hints, flag submission      |
+| `/labs/:slug`     | Hosted interactive challenge websites with no download required           |
+| `/leaderboard`    | Live persistent rankings, auto-refreshed every 30 s                       |
+| `/team`           | Create / join team, manage roster, rotate invite code                     |
+| `/submissions`    | Your last 100 flag attempts                                               |
+| `/account`        | Register, sign in, profile, sign out                                      |
+| `/studio`         | Author challenge creation, publishing, metrics & audit _(restricted)_     |
+| `/guide`          | Competition rules, scoring, hints & scope                                 |
 
 ---
 
@@ -217,26 +220,28 @@ cipherground/
 
 ## 📚 Documentation
 
-| Doc | Description |
-|---|---|
-| [Architecture](docs/ARCHITECTURE.md) | System design, trust model, data model, routes |
-| [API Reference](docs/API.md) | REST API endpoints & request/response schemas |
-| [Deployment](docs/DEPLOYMENT.md) | Local setup, Cloudflare deploy, lab host setup |
-| [Security](docs/SECURITY.md) | Security analysis & known limits |
-| [Test Results](docs/TEST_RESULTS.md) | Automated test output |
-| [Solutions](docs/SOLUTIONS.md) | 🔒 Organizer-only — keep private during competition |
+| Doc                                  | Description                                         |
+| ------------------------------------ | --------------------------------------------------- |
+| [Architecture](docs/ARCHITECTURE.md) | System design, trust model, data model, routes      |
+| [API Reference](docs/API.md)         | REST API endpoints & request/response schemas       |
+| [Deployment](docs/DEPLOYMENT.md)     | Local setup, Cloudflare deploy, lab host setup      |
+| [Security](docs/SECURITY.md)         | Security analysis & known limits                    |
+| [Test Results](docs/TEST_RESULTS.md) | Automated test output                               |
+| [Solutions](docs/SOLUTIONS.md)       | 🔒 Organizer-only — keep private during competition |
 
 ---
 
 ## ⚠️ Known Limits & Roadmap
 
 **Current limitations (pre-production):**
+
 - Docker lab infrastructure and CI isolation checks are included; provision and validate your actual host before public use
 - No email verification or account recovery yet
 - Needs production load testing before a hostile public competition
 - Not independently security-audited
 
 **Planned improvements:**
+
 - Richer PCAP / disk / binary artifacts & per-team variants
 - Reviewed write-up submission system
 - Scheduled events & scoreboard freeze

@@ -80,7 +80,7 @@ npx wrangler secret put ADMIN_BOOTSTRAP_TOKEN --config dist/server/wrangler.depl
 npx wrangler deploy --config dist/server/wrangler.deploy.json
 ```
 
-Use separately generated 32-byte random secrets; enter them at Wrangler's prompt, never in Git or shell command arguments. After claiming your organizer account, delete the bootstrap secret with `npx wrangler secret delete ADMIN_BOOTSTRAP_TOKEN --config dist/server/wrangler.deploy.json`. Add `RUNNER_URL` and `RUNNER_TOKEN` using the same `secret put` command when a dedicated lab host is ready. Fourteen downloadable challenges work while the runner is disabled.
+Use separately generated 32-byte random secrets; enter them at Wrangler's prompt, never in Git or shell command arguments. After claiming your organizer account, delete the bootstrap secret with `npx wrangler secret delete ADMIN_BOOTSTRAP_TOKEN --config dist/server/wrangler.deploy.json`. Add `RUNNER_URL` and `RUNNER_TOKEN` using the same `secret put` command when a dedicated lab host is ready. Fourteen downloadable challenges and all three hosted challenge websites work while the runner is disabled.
 
 A workers.dev deployment exposes the website publicly. Before deploying, verify that you intend public access or configure Cloudflare Access for staging. Configure HTTPS domain routing, edge rate rules, request-size limits, uptime monitoring, billing alerts and D1 backups. Perform a staging smoke test before admitting competitors; the bundled state-mutating smoke script is deliberately restricted to localhost.
 
@@ -92,7 +92,7 @@ A workers.dev deployment exposes the website publicly. Before deploying, verify 
 
 Use a separate disposable Linux VM with a patched Docker daemon. Build the allowlisted image locally on that host. Protect the runner control endpoint with TLS, a network allowlist and its bearer secret. Expose lab services on a different origin from the platform, never under the platform’s cookie scope. The simple runner returns HTTP host-port URLs; put a TLS gateway in front and adapt the returned URL mapping for public HTTPS labs. Do not simply open every Docker port to the Internet.
 
-See the runner isolation limitations in `SECURITY.md`. Prove network isolation, metadata blocking, expiry cleanup, host resource bounds and restart recovery before inviting untrusted users. The website can be deployed while the runner is disabled; ten downloadable investigations remain usable.
+See the runner isolation limitations in `SECURITY.md`. Prove network isolation, metadata blocking, expiry cleanup, host resource bounds and restart recovery before inviting untrusted users. The website can be deployed while the runner is disabled; fourteen downloadable investigations and three hosted web investigations remain usable.
 
 ## Maintenance
 

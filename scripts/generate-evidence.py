@@ -315,6 +315,15 @@ make_zip('pensieve-missing-hour',pensieve)
 solutions['pensieve-missing-hour']='CTF{MEMORY_LEAVES_A_SILVER_TRACE}'
 hints['pensieve-missing-hour']='The controller confirms memories 021, 034, 055 and 089. Sort them by original capture time, then extract sequential RGB LSB text from each corresponding portrait.'
 
+# Hosted web investigations intentionally have no downloadable artifact.
+solutions['red-console-protocol']='WAKE_THE_RED_SIGNAL'
+hints['red-console-protocol']='Open Developer Tools on the challenge website. The Console announces a window object; call its help method, then probe the three node names visible in the DOM.'
+dynamic.add('red-console-protocol')
+solutions['last-screening']='CTF{REWIND_THE_FINAL_FRAME}'
+hints['last-screening']='CAM 02 is 17 minutes slow, so its 22:53 frame occurred at 23:10. Match that corrected time to the rental ledger, then use the maintenance aisle for unlabeled returns.'
+solutions['baker-street-packet']='CTF{THE_HEADER_WAS_THE_FOOTPRINT}'
+hints['baker-street-packet']='Inspect the dispatch response header and Base64-decode its telegram. The ledger response names the two headers required by the vault.'
+
 # Correct computed values and avoid contradictory metadata.
 p=P/'packet-whisperer.txt';p.write_text(p.read_text().replace('length=78',f'length={len(payload)}'))
 for id,hint in [('ghost-in-the-cache','Compare the origin’s path interpretation with the gateway cache key. The support preview fetches as an internal user and shares the cache.'),('signed-sealed','Check which duplicate value the signature verifier uses and which value the dispatch authorization reads.')]:hints[id]=hint

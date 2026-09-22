@@ -17,6 +17,7 @@ export type Challenge = {
   description: string;
   tags: string[];
   artifact: string;
+  site?: string;
   hintCost?: number;
   published?: boolean;
   authorId?: string | null;
@@ -231,4 +232,54 @@ export const catalog: Challenge[] = [
     artifact: 'pensieve-missing-hour.zip',
     prerequisite: 'afterimage',
   },
+  {
+    id: 'red-console-protocol',
+    title: 'The Red Console Protocol',
+    category: 'Web',
+    difficulty: 'Medium',
+    points: 450,
+    summary: 'The page is quiet. The console is waiting for you to wake it.',
+    description:
+      'Enter a standalone cyber-simulation website and investigate its rendered clues, DOM attributes, and browser console. Discover the exposed console object, probe the three unstable nodes, and issue the correct unlock phrase. The website reveals a flag containing your personal solo/team token, so copying another player’s result will fail. This challenge has no downloadable evidence.',
+    tags: ['Browser console', 'DOM inspection', 'Dynamic flag'],
+    artifact: '',
+    site: '/labs/red-console',
+    dynamic: true,
+  },
+  {
+    id: 'last-screening',
+    title: 'The Last Screening',
+    category: 'Web',
+    difficulty: 'Hard',
+    points: 600,
+    summary:
+      'The video store closed at midnight. One rental was never returned.',
+    description:
+      'Investigate a long-form retro thriller website with separate incident, rental, security, maintenance, and terminal views. Reconcile a drifting CCTV clock with the checkout ledger, identify the correct customer code and recover the missing aisle suffix. One optional training-video link is a deliberate rickroll; it is the only rickroll in the new web set. Enter the reconstructed access code on the website to reveal the flag.',
+    tags: ['Multi-page investigation', 'Timeline', 'Web puzzle'],
+    artifact: '',
+    site: '/labs/last-screening',
+  },
+  {
+    id: 'baker-street-packet',
+    title: 'The Baker Street Packet',
+    category: 'Web',
+    difficulty: 'Hard',
+    points: 650,
+    summary:
+      'Every request leaves a footprint. This one hid inside the headers.',
+    description:
+      'Open an original detective-themed case website and follow its live same-origin API trail. Read the dispatch, correlate the telegram with the evidence ledger, then reconstruct the final request using the required query value and HTTP headers. The final endpoint returns the flag only when the complete evidence order is supplied. No download and no external services are required.',
+    tags: ['HTTP headers', 'API investigation', 'Request reconstruction'],
+    artifact: '',
+    site: '/labs/baker-street-packet',
+  },
 ];
+
+export function challengeVisual(id: string) {
+  const index = catalog.findIndex((challenge) => challenge.id === id);
+  const cell = index < 0 ? 19 : index % 20;
+  return {
+    backgroundPosition: `${(cell % 5) * 25}% ${Math.floor(cell / 5) * (100 / 3)}%`,
+  };
+}

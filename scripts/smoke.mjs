@@ -30,6 +30,9 @@ for (const path of [
   '/studio',
   '/guide',
   '/challenges/the-last-commit',
+  '/labs/red-console',
+  '/labs/last-screening',
+  '/labs/baker-street-packet',
 ]) {
   const r = await request(path);
   assert.equal(r.status, 200, path);
@@ -40,6 +43,32 @@ for (const path of [
 let r = await request('/api/health');
 assert.equal(r.status, 200);
 assert.equal((await r.json()).database, 'connected');
+checks++;
+let lab = await request('/api/labs/baker-street/dispatch');
+assert.equal(lab.status, 200);
+assert.equal(lab.headers.get('x-dispatch-year'), '1895');
+checks++;
+lab = await request('/api/labs/baker-street/ledger?case=violet-9');
+assert.equal(lab.status, 200);
+assert.equal(
+  lab.headers.get('x-required-headers'),
+  'X-Case-Id, X-Evidence-Order',
+);
+checks++;
+lab = await fetch(base + '/api/labs/baker-street/vault?year=1895', {
+  headers: {
+    'X-Case-Id': 'violet-9',
+    'X-Evidence-Order': 'CAB,WINDOW,LAMP',
+  },
+});
+assert.equal(lab.status, 200);
+assert.equal((await lab.json()).flag, 'CTF{THE_HEADER_WAS_THE_FOOTPRINT}');
+checks++;
+lab = await request('/api/labs/last-screening/verify', {
+  code: '0419-BETA-23',
+});
+assert.equal(lab.status, 200);
+assert.equal((await lab.json()).flag, 'CTF{REWIND_THE_FINAL_FRAME}');
 checks++;
 const name = 'smoke_' + randomBytes(4).toString('hex');
 r = await request('/api/auth/register', {

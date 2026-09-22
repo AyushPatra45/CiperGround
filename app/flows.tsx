@@ -20,6 +20,7 @@ import {
   BookOpen,
   Terminal,
   LoaderCircle,
+  Globe2,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
@@ -328,28 +329,48 @@ export function ChallengeBody({
               </span>
             </div>
           )}
-          <div className="evidence-panel">
-            <div>
-              <Download size={20} />
+          {c.site ? (
+            <div className="evidence-panel site-evidence-panel">
               <div>
-                <strong>Investigation files</strong>
-                <small>
-                  {c.artifact
-                    ? `Source material and evidence · ${c.artifact.split('.').pop()?.toUpperCase()}`
-                    : 'All evidence is in the mission brief'}
-                </small>
+                <Globe2 size={20} />
+                <div>
+                  <strong>Interactive challenge website</strong>
+                  <small>Standalone browser experience · No download</small>
+                </div>
               </div>
-            </div>
-            {c.artifact && (
               <a
-                className="outline-button"
-                href={'/artifacts/' + c.artifact}
-                download
+                className="primary-button"
+                href={c.site}
+                target="_blank"
+                rel="noreferrer"
               >
-                Download <ArrowUpRight size={14} />
+                Open website <ArrowUpRight size={14} />
               </a>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div className="evidence-panel">
+              <div>
+                <Download size={20} />
+                <div>
+                  <strong>Investigation files</strong>
+                  <small>
+                    {c.artifact
+                      ? `Source material and evidence · ${c.artifact.split('.').pop()?.toUpperCase()}`
+                      : 'All evidence is in the mission brief'}
+                  </small>
+                </div>
+              </div>
+              {c.artifact && (
+                <a
+                  className="outline-button"
+                  href={'/artifacts/' + c.artifact}
+                  download
+                >
+                  Download <ArrowUpRight size={14} />
+                </a>
+              )}
+            </div>
+          )}
           {c.dynamic && (
             <div className="token-panel">
               <div>

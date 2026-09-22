@@ -1,25 +1,25 @@
 # Verification results
 
-Verification performed on macOS with Node.js 26.0.0 and Python 3.14.2, September 8–10, 2026.
+Verification performed on macOS with Node.js 26.0.0 and Python 3.14.2, September 8–23, 2026.
 
-| Check | Result |
-| --- | --- |
-| Production build | Passed; Worker ESM and browser assets generated |
-| TypeScript type check | Passed |
-| Production dependency audit | Zero known vulnerabilities after framework and undici patches |
-| Backend integration tests | 16 passed |
-| Evidence, lab/gateway HTTP and runner regression tests | 20 passed |
-| Compiled-server HTTP smoke checks | 36 passed |
-| Browser registration and team creation | Passed with local test account |
-| Browser incorrect/correct flag submission | Passed; solve persisted and score was 90 after a 10-point hint |
-| Browser mobile menu | Passed; selecting Leaderboard closes menu |
-| Browser responsive check | 390px mobile inspected; header overflow found, corrected and verified at exactly 390px page width; desktop layout checked at 1440px |
-| WebMCP | Both tools registered; valid list/duplicate submit and invalid inputs verified |
-| Public JavaScript secret scan | No flag hashes, password implementation, organizer answer or locked-hint text found |
-| Docker build, isolation and lifecycle | Passed on GitHub Linux runner; Docker remains absent locally |
-| Full lint policy | Passed; typed API contracts and component fixes |
-| Public Cloudflare deployment | Passed; Worker, assets, secrets and APAC D1 binding published on workers.dev |
-| Live production journey | 29 checks passed; pages, headers, D1 health, registration, login, admin claim, flag validation, persistence and ten artifacts |
+| Check                                                  | Result                                                                                                                              |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Production build                                       | Passed; Worker ESM and browser assets generated                                                                                     |
+| TypeScript type check                                  | Passed                                                                                                                              |
+| Production dependency audit                            | Zero known vulnerabilities after framework and undici patches                                                                       |
+| Backend integration tests                              | 18 passed                                                                                                                           |
+| Evidence, lab/gateway HTTP and runner regression tests | 20 passed                                                                                                                           |
+| Compiled-server HTTP smoke checks                      | 43 passed                                                                                                                           |
+| Browser registration and team creation                 | Passed with local test account                                                                                                      |
+| Browser incorrect/correct flag submission              | Passed; solve persisted and score was 90 after a 10-point hint                                                                      |
+| Browser mobile menu                                    | Passed; selecting Leaderboard closes menu                                                                                           |
+| Browser responsive check                               | 390px mobile inspected; header overflow found, corrected and verified at exactly 390px page width; desktop layout checked at 1440px |
+| WebMCP                                                 | Both tools registered; valid list/duplicate submit and invalid inputs verified                                                      |
+| Public JavaScript secret scan                          | No flag hashes, password implementation, organizer answer or locked-hint text found                                                 |
+| Docker build, isolation and lifecycle                  | Passed on GitHub Linux runner; Docker remains absent locally                                                                        |
+| Full lint policy                                       | Passed; typed API contracts and component fixes                                                                                     |
+| Public Cloudflare deployment                           | Passed; Worker, assets, secrets and APAC D1 binding published on workers.dev                                                        |
+| Live production journey                                | 29 checks passed; pages, headers, D1 health, registration, login, admin claim, flag validation, persistence and ten artifacts       |
 
 The API tests exercise real SQLite with the production handler and a small D1 adapter; they do not emulate Cloudflare platform throttling. The smoke tests use the compiled Worker under Wrangler, not an in-memory mock. The two vulnerable lab services were started separately and exercised over HTTP: direct unauthorized paths failed, and the intended exploit chains retrieved their test flags.
 
@@ -62,3 +62,9 @@ Three additional local real-HTTP gateway regression tests passed: both intended 
 ## Long-form challenge expansion — September 22, 2026
 
 Added four original fan-themed archives, raising the catalog to 16 challenges and the downloadable set to 14. The evidence tests independently unpack and solve the new archives: they decode the exact PNG RGB LSB channel used by `zsteg`, reconstruct four-part messages, validate a chained SHA-256 raven ledger, reverse its columnar transposition, and confirm the rickroll and flag-shaped strings are decoys. API coverage verifies that selected downloadable challenges expose different stable tokens to different principals and reject copied cross-principal flags. The current local run passed 16 API tests, 20 Python tests and 36 compiled-server HTTP checks; lint, TypeScript and the production build also passed. Production Worker version `1c936066-c0e9-4131-9d2a-75ded1d65e52` was activated successfully; its public state returned all 16 challenges and the new ZIP endpoint returned HTTP 200 with `application/zip`.
+
+## Hosted web challenge expansion — September 23, 2026
+
+Added three separate, non-downloadable challenge websites, raising the catalog to 19. The Red Console Protocol exposes a documented DevTools bridge and issues a solo/team-specific dynamic flag. The Last Screening presents five investigation views and keeps its final flag behind a rate-limited server verification route. The Baker Street Packet uses three live API requests, response headers, Base64 evidence and strict custom-header validation. One optional training link in The Last Screening is the only rickroll in this hosted set. Every challenge card and detail dialog now uses a dedicated crop from an original 20-panel visual asset.
+
+The final local verification passed 18 API integration tests, 20 Python evidence/lab/runner tests, lint, TypeScript and the production build. The compiled Worker passed 43 HTTP smoke checks. Browser testing visually inspected the arena artwork and all three hosted layouts, completed the screening terminal, and reconstructed the Baker Street vault request successfully. Production Worker version `559cf67f-e707-4794-b833-977589320575` was deployed; the public API returned 19 challenges and all three live sites plus the artwork asset returned HTTP 200.

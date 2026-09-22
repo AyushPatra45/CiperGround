@@ -39,7 +39,12 @@ import {
   Sparkles,
   ArrowRight,
 } from 'lucide-react';
-import { catalog, categories, type Challenge } from '@/lib/catalog';
+import {
+  catalog,
+  categories,
+  challengeVisual,
+  type Challenge,
+} from '@/lib/catalog';
 import {
   SidebarProvider,
   Sidebar,
@@ -573,6 +578,11 @@ export default function Arena({
                       }
                       onClick={() => openChallenge(c)}
                     >
+                      <div
+                        className="challenge-art"
+                        style={challengeVisual(c.id)}
+                        aria-hidden="true"
+                      />
                       <div className="card-top">
                         <span className="category-icon">
                           <I size={22} />
@@ -661,13 +671,20 @@ export default function Arena({
             points
           </DialogDescription>
           {selectedLive && (
-            <ChallengeBody
-              key={selectedLive.id}
-              challenge={selectedLive}
-              state={state}
-              refresh={refresh}
-              signIn={() => navigate('Account')}
-            />
+            <>
+              <div
+                className="challenge-detail-art"
+                style={challengeVisual(selectedLive.id)}
+                aria-hidden="true"
+              />
+              <ChallengeBody
+                key={selectedLive.id}
+                challenge={selectedLive}
+                state={state}
+                refresh={refresh}
+                signIn={() => navigate('Account')}
+              />
+            </>
           )}
         </DialogContent>
       </Dialog>

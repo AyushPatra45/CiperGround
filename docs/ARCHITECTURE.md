@@ -18,7 +18,7 @@ flowchart LR
 - The application never runs submitted code, SQL, shell commands, Docker arguments or user-provided container images.
 - The Docker daemon and its socket are absent from the platform Worker. The runner is a separate control service on an isolated host.
 - Lab flags are HMAC-derived from the challenge ID and solo/team principal. Restarting an instance retains that principal’s flag. Players cannot claim other teams’ flags.
-- Selected downloadable investigations produce a shared evidence-derived CORE plus a 12-hex token derived for the current solo/team principal. The server separately validates the CORE hash and token in constant time, so copying another principal’s completed flag fails.
+- Selected investigations produce a shared evidence-derived CORE plus a 12-hex token derived for the current solo/team principal. The server separately validates the CORE hash and token in constant time, so copying another principal’s completed flag fails.
 - Downloadable challenge flags are SHA-256 hashes in organizer-only server source and D1. Flag matching is constant-time. Flags are high-entropy secrets or evidence-derived answers, not passwords.
 - Session tokens and invite codes are 256-bit random values. Only their SHA-256 digests are persisted.
 
@@ -32,22 +32,23 @@ Membership is fixed after the first solve or paid hint. SQL predicates and D1 ba
 
 ## Product routes
 
-| Route | Purpose |
-| --- | --- |
-| `/` | Search, category, difficulty, and solve-status filters |
-| `/challenges/:id` | Shareable challenge details, evidence, hints, flag form, lab launch |
-| `/leaderboard` | Live persisted rankings, refreshed every 30 seconds |
-| `/team` | Create/join team, roster, captain invite rotation |
-| `/submissions` | Latest 100 attempts for the current principal |
-| `/account` | Registration, sign-in, profile, sign-out |
-| `/studio` | Restricted challenge authoring, publishing, author roles, metrics, audit |
-| `/guide` | Competition rules, scoring, hints, scope |
+| Route             | Purpose                                                                  |
+| ----------------- | ------------------------------------------------------------------------ |
+| `/`               | Search, category, difficulty, and solve-status filters                   |
+| `/challenges/:id` | Shareable challenge details, evidence, hints, flag form, lab launch      |
+| `/labs/:slug`     | Same-origin hosted browser investigations and console/API puzzles        |
+| `/leaderboard`    | Live persisted rankings, refreshed every 30 seconds                      |
+| `/team`           | Create/join team, roster, captain invite rotation                        |
+| `/submissions`    | Latest 100 attempts for the current principal                            |
+| `/account`        | Registration, sign-in, profile, sign-out                                 |
+| `/studio`         | Restricted challenge authoring, publishing, author roles, metrics, audit |
+| `/guide`          | Competition rules, scoring, hints, scope                                 |
 
 Authentication uses application-owned email/password accounts because the project specifically requires independent player registration. Sites also places its owner-only access gate around the private preview; passing that gate does not grant an application role. Platform identity headers are not accepted as proof of an app administrator role.
 
 ## Challenge design
 
-Sixteen examples span all six requested disciplines. Each has an organizer explanation and reproducible evidence. The two web labs require a vulnerability chain and use unique runtime flags. Four long-form fan-themed investigations add nested ZIP evidence, clock normalization, hash chains, source validation, transposition cryptography, deliberate false flags and original PNG least-significant-bit payloads. Two use solo/team-specific downloadable flags. Afterimage, Ravens of the Seven Realms and The Pensieve of the Missing Hour have prerequisite solves.
+Nineteen examples span all six requested disciplines. Fourteen ship reproducible downloadable evidence, three are complete same-origin websites, and two can launch Docker-isolated vulnerability labs when a runner is connected. The hosted set covers a DevTools console investigation with a solo/team-specific flag, a five-view timeline case with a server-verified terminal, and a live three-request HTTP header reconstruction. Four long-form themed archives add nested ZIP evidence, clock normalization, hash chains, source validation, transposition cryptography, deliberate false flags and original PNG least-significant-bit payloads. Afterimage, Ravens of the Seven Realms and The Pensieve of the Missing Hour have prerequisite solves.
 
 AI tools are allowed. These examples aim to reward genuine problem-solving, but do not guarantee resistance to capable automated solvers. The initial artifacts are compact educational fixtures, not full forensic disk images or production malware. See `docs/SOLUTIONS.md` for intended answers; keep that file and this repository private during competition.
 

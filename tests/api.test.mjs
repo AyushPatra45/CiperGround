@@ -112,7 +112,11 @@ test('registration uses hashed sessions, private cookies, durable accounts and r
     assert.match(r.headers.get('set-cookie'), /HttpOnly/);
     assert.match(r.headers.get('set-cookie'), /SameSite=Lax/);
     const state = await h.call('state');
-    assert.equal(state.data.challenges.length, 16);
+    assert.equal(state.data.challenges.length, 19);
+    assert.equal(
+      state.data.challenges.find((c) => c.id === 'last-screening').site,
+      '/labs/last-screening',
+    );
     assert.equal(state.data.user.name, 'tester');
     const text = JSON.stringify(state.data);
     assert.ok(!text.includes('flag_hash'));
@@ -160,9 +164,74 @@ test('dynamic evidence flags use stable principal-specific tokens', async () => 
       ).data.correct,
       true,
     );
+    const consoleChallenge = (await first.call('state')).data.challenges.find(
+      (c) => c.id === 'red-console-protocol',
+    );
+    assert.equal(consoleChallenge.site, '/labs/red-console');
+    assert.equal(
+      (
+        await first.call('challenges/red-console-protocol/submit', {
+          flag: `CTF{WAKE_THE_RED_SIGNAL:${consoleChallenge.personalToken}}`,
+        })
+      ).data.correct,
+      true,
+    );
   } finally {
     first.close();
     second.close();
+  }
+});
+test('Baker Street public API requires the complete reconstructed request', async () => {
+  const h = harness();
+  try {
+    const dispatch = await h.call('labs/baker-street/dispatch');
+    assert.equal(dispatch.status, 200);
+    assert.equal(dispatch.data.case, 'violet-9');
+    assert.equal(dispatch.headers.get('x-dispatch-year'), '1895');
+    assert.equal(
+      (await h.call('labs/baker-street/ledger?case=wrong')).status,
+      404,
+    );
+    const ledger = await h.call('labs/baker-street/ledger?case=violet-9');
+    assert.equal(ledger.status, 200);
+    assert.equal(
+      ledger.headers.get('x-required-headers'),
+      'X-Case-Id, X-Evidence-Order',
+    );
+    assert.equal(
+      (await h.call('labs/baker-street/vault?year=1895')).status,
+      403,
+    );
+    const vault = await h.call('labs/baker-street/vault?year=1895', undefined, {
+      headers: {
+        'x-case-id': 'violet-9',
+        'x-evidence-order': 'CAB,WINDOW,LAMP',
+      },
+    });
+    assert.equal(vault.status, 200);
+    assert.equal(vault.data.flag, 'CTF{THE_HEADER_WAS_THE_FOOTPRINT}');
+  } finally {
+    h.close();
+  }
+});
+test('Last Screening terminal keeps its flag out of the client puzzle data', async () => {
+  const h = harness();
+  try {
+    assert.equal(
+      (
+        await h.call('labs/last-screening/verify', {
+          code: '0419-WRONG-23',
+        })
+      ).status,
+      403,
+    );
+    const solved = await h.call('labs/last-screening/verify', {
+      code: '0419-BETA-23',
+    });
+    assert.equal(solved.status, 200);
+    assert.equal(solved.data.flag, 'CTF{REWIND_THE_FINAL_FRAME}');
+  } finally {
+    h.close();
   }
 });
 test('wrong login rejected, logout revokes session, correct login restores state', async () => {

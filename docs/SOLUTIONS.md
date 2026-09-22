@@ -85,3 +85,21 @@ Validate each registered SHA-256 seal and follow PREVIOUS from GENESIS. The vali
 The controller confirms memories 021, 034, 055 and 089. Sort them by original capture time, then extract sequential RGB LSB text from each corresponding portrait.
 
 `CTF{MEMORY_LEAVES_A_SILVER_TRACE}`
+
+## red-console-protocol
+
+Open Developer Tools on the challenge website. The Console announces a window object; call its help method, then probe the three node names visible in the DOM.
+
+`CTF{WAKE_THE_RED_SIGNAL:<personal token>}`
+
+## last-screening
+
+CAM 02 is 17 minutes slow, so its 22:53 frame occurred at 23:10. Match that corrected time to the rental ledger, then use the maintenance aisle for unlabeled returns.
+
+`CTF{REWIND_THE_FINAL_FRAME}`
+
+## baker-street-packet
+
+Inspect the dispatch response header and Base64-decode its telegram. The ledger response names the two headers required by the vault.
+
+`CTF{THE_HEADER_WAS_THE_FOOTPRINT}`

@@ -42,6 +42,9 @@ const dynamicChallenges = new Set(
     .filter((challenge) => challenge.dynamic)
     .map((challenge) => challenge.id),
 );
+const catalogById = new Map(
+  catalog.map((challenge) => [challenge.id, challenge]),
+);
 export function createApi(db: DB, config: Config = {}) {
   const stmt = (s: string, ...args: unknown[]) => db.prepare(s).bind(...args);
   const first = <T = { id: string }>(s: string, ...args: unknown[]) =>
@@ -124,6 +127,7 @@ export function createApi(db: DB, config: Config = {}) {
     description: c.description,
     tags: JSON.parse(c.tags),
     artifact: c.artifact,
+    site: catalogById.get(c.id)?.site,
     environment: c.environment,
     prerequisite: c.prerequisite,
     featured: !!c.featured,
@@ -262,6 +266,74 @@ export function createApi(db: DB, config: Config = {}) {
         check(req.method === 'POST', 405, 'Use POST');
         if (session) await run('DELETE FROM sessions WHERE id=?', sha(session));
         return json({ ok: true }, 200, { 'Set-Cookie': cookie('', req, 0) });
+      }
+      if (path === 'labs/baker-street/dispatch' && req.method === 'GET') {
+        await rate('baker-dispatch:' + ip, 60);
+        return json(
+          {
+            case: 'violet-9',
+            telegram: 'Q0FCIFdJTkRPVyBMQU1Q',
+            archive: '/api/labs/baker-street/ledger?case=violet-9',
+            instruction:
+              'Decode the telegram, keep its evidence order, and inspect every response header.',
+          },
+          200,
+          { 'X-Dispatch-Year': '1895' },
+        );
+      }
+      if (path === 'labs/last-screening/verify') {
+        check(req.method === 'POST', 405, 'Use POST');
+        await rate('screening-terminal:' + ip, 12);
+        check(
+          textValue(body.code).trim().toUpperCase() === '0419-BETA-23',
+          403,
+          'Access denied — reconcile all five records',
+        );
+        return json({ flag: 'CTF{REWIND_THE_FINAL_FRAME}' });
+      }
+      if (path === 'labs/baker-street/ledger' && req.method === 'GET') {
+        await rate('baker-ledger:' + ip, 60);
+        check(
+          url.searchParams.get('case') === 'violet-9',
+          404,
+          'Case not found',
+        );
+        return json(
+          {
+            case: 'violet-9',
+            entries: [
+              { evidence: 'CAB', status: 'verified', mark: 'C' },
+              { evidence: 'WINDOW', status: 'verified', mark: 'W' },
+              { evidence: 'LAMP', status: 'verified', mark: 'L' },
+              { evidence: 'UMBRELLA', status: 'planted', mark: 'U' },
+            ],
+            next: '/api/labs/baker-street/vault?year=YEAR',
+            instruction:
+              'Use the dispatch year as YEAR. Send the case id and decoded evidence order as request headers.',
+          },
+          200,
+          { 'X-Required-Headers': 'X-Case-Id, X-Evidence-Order' },
+        );
+      }
+      if (path === 'labs/baker-street/vault' && req.method === 'GET') {
+        await rate('baker-vault:' + ip, 30);
+        check(
+          url.searchParams.get('year') === '1895',
+          403,
+          'Wrong archive year',
+        );
+        check(
+          req.headers.get('x-case-id') === 'violet-9',
+          403,
+          'Wrong case id',
+        );
+        check(
+          req.headers.get('x-evidence-order')?.toUpperCase() ===
+            'CAB,WINDOW,LAMP',
+          403,
+          'Evidence order rejected',
+        );
+        return json({ flag: 'CTF{THE_HEADER_WAS_THE_FOOTPRINT}' });
       }
       if (path === 'state' && req.method === 'GET') {
         const cs = await all<ChallengeRow>(
