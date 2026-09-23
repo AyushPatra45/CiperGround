@@ -220,14 +220,14 @@ cipherground/
 
 ## 📚 Documentation
 
-| Doc                                  | Description                                         |
-| ------------------------------------ | --------------------------------------------------- |
-| [Architecture](docs/ARCHITECTURE.md) | System design, trust model, data model, routes      |
-| [API Reference](docs/API.md)         | REST API endpoints & request/response schemas       |
-| [Deployment](docs/DEPLOYMENT.md)     | Local setup, Cloudflare deploy, lab host setup      |
-| [Security](docs/SECURITY.md)         | Security analysis & known limits                    |
-| [Test Results](docs/TEST_RESULTS.md) | Automated test output                               |
-| [Solutions](docs/SOLUTIONS.md)       | 🔒 Organizer-only — keep private during competition |
+| Doc                                  | Description                                           |
+| ------------------------------------ | ----------------------------------------------------- |
+| [Architecture](docs/ARCHITECTURE.md) | System design, trust model, data model, routes        |
+| [API Reference](docs/API.md)         | REST API endpoints & request/response schemas         |
+| [Deployment](docs/DEPLOYMENT.md)     | Local setup, Cloudflare deploy, lab host setup        |
+| [Security](docs/SECURITY.md)         | Security analysis & known limits                      |
+| [Test Results](docs/TEST_RESULTS.md) | Automated test output                                 |
+| [Solutions](docs/SOLUTIONS.md)       | Public example answer key; replace for a scored event |
 
 ---
 

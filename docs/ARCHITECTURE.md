@@ -1,6 +1,6 @@
 # Cipherground architecture
 
-The platform is a React 19 + TypeScript application using the Vinext App Router, Vite 8, Tailwind 4 and accessible Base UI/Shadcn primitives. Its API runs as a Cloudflare Worker with the `nodejs_compat` flag. Cloudflare D1 supplies durable SQLite storage; Drizzle owns versioned schema migrations. Site hosting provisions the application Worker and database. Vulnerable labs run on a separate Docker host.
+The platform is a React 19 + TypeScript application using the Vinext App Router, Vite 8, Tailwind 4 and accessible Base UI/Shadcn primitives. Its API runs as a Cloudflare Worker with the `nodejs_compat` flag. Cloudflare D1 supplies durable SQLite storage; Drizzle owns versioned schema migrations. Wrangler publishes the application Worker. Vulnerable labs run on a separate Docker host.
 
 ```mermaid
 flowchart LR
@@ -44,13 +44,13 @@ Membership is fixed after the first solve or paid hint. SQL predicates and D1 ba
 | `/studio`         | Restricted challenge authoring, publishing, author roles, metrics, audit |
 | `/guide`          | Competition rules, scoring, hints, scope                                 |
 
-Authentication uses application-owned email/password accounts because the project specifically requires independent player registration. Sites also places its owner-only access gate around the private preview; passing that gate does not grant an application role. Platform identity headers are not accepted as proof of an app administrator role.
+Authentication uses application-owned email/password accounts because the project specifically requires independent player registration. The public workers.dev site has no outer identity gate. Platform identity headers are not accepted as proof of an app administrator role.
 
 ## Challenge design
 
 Nineteen examples span all six requested disciplines. Fourteen ship reproducible downloadable evidence, three are complete same-origin websites, and two can launch Docker-isolated vulnerability labs when a runner is connected. The hosted set covers a DevTools console investigation with a solo/team-specific flag, a five-view timeline case with a server-verified terminal, and a live three-request HTTP header reconstruction. Four long-form themed archives add nested ZIP evidence, clock normalization, hash chains, source validation, transposition cryptography, deliberate false flags and original PNG least-significant-bit payloads. Afterimage, Ravens of the Seven Realms and The Pensieve of the Missing Hour have prerequisite solves.
 
-AI tools are allowed. These examples aim to reward genuine problem-solving, but do not guarantee resistance to capable automated solvers. The initial artifacts are compact educational fixtures, not full forensic disk images or production malware. See `docs/SOLUTIONS.md` for intended answers; keep that file and this repository private during competition.
+AI tools are allowed. These examples aim to reward genuine problem-solving, but do not guarantee resistance to capable automated solvers. The initial artifacts are compact educational fixtures, not full forensic disk images or production malware. This public repository includes `docs/SOLUTIONS.md` and answer-generation code, so the published examples cannot serve as secret scored competition content. Use fresh private challenges and rotate their answers for an event.
 
 ### Lab ingress
 

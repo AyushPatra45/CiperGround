@@ -44,15 +44,9 @@ Set the same `RUNNER_TOKEN` in `.dev.vars`, `RUNNER_URL=http://127.0.0.1:9090`, 
 
 The runner defaults to 20 concurrent instances and 30-minute lifetimes. Relevant runner variables: `RUNNER_TOKEN`, `RUNNER_PORT`, `RUNNER_BIND_IP`, `LAB_PUBLIC_HOST`, `LAB_BIND_IP`, `MAX_LABS`, `LAB_IMAGE`, `RUNNER_ID`, `LAB_TTL_SECONDS`. Keep a stable, unique `RUNNER_ID` per runner (default `default`); restart cleanup only reclaims its own labeled resources. `LAB_TTL_SECONDS` defaults to 1800 and must be 1–3600. If upgrading the original runner, remove its legacy `cipherground.lab=true` containers and networks during a maintenance window; they have no runner-ownership label. These configure the separate runner process, not the Worker.
 
-## Hosted Sites deployment
+## Current public Cloudflare deployment
 
-Current delivery status: publication could not complete because the existing project returns `NOT_FOUND` from the current Sites connection, which lists no sites. The original project ID is preserved. Reconnect to the account/workspace that owns that project before resuming publication. The local application and deployment archive remain usable.
-
-`.openai/hosting.json` records the existing Cipherground project and logical DB binding. Reuse its project ID; do not initialize another Site. The hosting workflow packages `dist/server`, `dist/client`, the hosting manifest and generated `drizzle` migrations, saves a version from the committed source, and publishes that version. Sites applies D1 migrations before uploading the Worker.
-
-Manage production `FLAG_KEY`, `RUNNER_URL`, `RUNNER_TOKEN`, and the temporary `ADMIN_BOOTSTRAP_TOKEN` through the Sites environment-variable tools as secret values where appropriate. These are runtime values, never `NEXT_PUBLIC_*` variables or hosting-manifest entries. Deploy a new version after changing them.
-
-The initial deployment is owner-private. Sharing the platform with a public competition requires explicitly changing the audience after its operational checks are complete. The Sites outer identity gate and the platform’s player accounts are distinct.
+The live application is deployed directly with Wrangler at [cipherground.cipherground.workers.dev](https://cipherground.cipherground.workers.dev/). Its Worker uses the production D1 database named `cipherground`. The repository's `.openai/hosting.json` is a legacy Sites configuration; it does not control this public Worker. The Docker runner is still separate and disabled on the public deployment.
 
 ## Deploy on your own Cloudflare account
 
@@ -101,4 +95,4 @@ See the runner isolation limitations in `SECURITY.md`. Prove network isolation, 
 - `/api/health` is suitable for an uptime probe. Use Worker logs and Author studio metrics/audit for initial monitoring.
 - Call `POST /api/admin/maintenance` periodically with an admin session to remove expired sessions and rate-limit buckets.
 - Back up D1 before migrations. Version migrations are append-only after deployment. Practice restoring into a separate database.
-- Keep organizer solutions and the source repository private while challenges are active.
+- The public repository contains organizer solutions and reproducible answer generation. These challenges are demonstration material. For a scored competition, create new private challenge content and rotate all published answers before inviting players.
